@@ -190,6 +190,53 @@ npm run dev        # from the repo root: API + worker together
 
 ---
 
+## 8b. Try it with your own voice
+
+Two commands. The API and worker must be running (`npm run dev`).
+
+**Record straight from the microphone:**
+
+```bash
+cd backend && npm run record        # 10 seconds
+cd backend && npm run record 15     # 15 seconds
+```
+
+It prints a suggested Bangla sentence, counts down, records, and runs the clip
+through the live pipeline.
+
+**Or use a file you already have** — Voice Memos, WhatsApp, anything ffmpeg can
+read:
+
+```bash
+cd backend && npm run try -- ~/Downloads/memo.m4a
+cd backend && npm run try -- clip.wav --outlet OUT-1182   # simulate a confirmed shop
+```
+
+### What you get back
+
+- the raw transcript, **word by word, coloured by ASR confidence**
+- every quantity the grammar found, with its derivation (`1.5 (দেড়) × 12 (ডজন)`)
+- every product candidate with its score and the **margin** to the runner-up
+- every outlet candidate with distance and name match
+- the final observations with **per-field confidence** and which fields were flagged
+
+Read the margins, not just the scores. A high score with a low margin means two
+candidates sound alike and the system is guessing — that is what triggers a
+clarification prompt.
+
+### Say something the seeded catalogue knows
+
+The demo tenant carries PRAN, Surf Excel, Lux, Harpic, Colgate and the
+competitors Wheel, White Plus, Rin, across four shops in one cluster. Try:
+
+> বিজয় স্টোরে প্রাণ ম্যাঙ্গো জুস দেড় ডজন লাগবে, আর হুইল এর নতুন অফার দিছে, পাঁচ টাকা কম
+
+Then try it again badly — mumble, add background noise, say only the brand —
+and watch the confidences fall and the flags appear. **That is the demo**, far
+more than a clean run is.
+
+---
+
 ## 9. Decisions only you can make
 
 ### Collect the field audio

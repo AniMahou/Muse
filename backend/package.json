@@ -20,7 +20,9 @@
     "test:cov": "vitest run --coverage",
     "eval": "tsx eval/run.ts",
     "seed:catalog": "tsx scripts/seed-catalog.ts",
-    "view:trace": "tsx scripts/view-trace.ts"
+    "view:trace": "tsx scripts/view-trace.ts",
+    "try": "tsx scripts/try-clip.ts",
+    "record": "bash scripts/record.sh"
   },
   "dependencies": {
     "bullmq": "^5.34.0",
