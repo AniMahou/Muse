@@ -12,7 +12,7 @@
   "overrides": [
     {
       "files": ["src/pipeline/**/*.ts"],
-      "excludedFiles": ["src/pipeline/**/*.test.ts"],
+      "excludedFiles": ["src/pipeline/**/*.test.ts", "src/pipeline/**/test.ts", "src/pipeline/**/fixtures/**"],
       "rules": {
         "no-restricted-imports": [
           "error",
