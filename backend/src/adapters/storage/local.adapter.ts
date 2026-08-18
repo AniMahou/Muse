@@ -54,7 +54,7 @@ export class MemoryStorage implements IStorage {
   readonly name = "memory";
   private readonly files = new Map<string, Uint8Array>();
 
-  async put(key: string, data: Uint8Array): Promise<void> {
+  async put(key: string, data: Uint8Array, _contentType?: string): Promise<void> {
     this.files.set(key, data);
   }
   async get(key: string): Promise<Uint8Array> {
