@@ -92,6 +92,11 @@ const GRAPHEME: Record<string, string> = {
  */
 const LATIN_DIGRAPHS: Array<[RegExp, string]> = [
   [/^wh/g, "hu"],
+  // `w` after a vowel is a glide, not a consonant: "New" is নিউ (niu), not
+  // neb. Only initial `w` takes the ও/ভ reading handled by LATIN_SINGLE.
+  [/ew/g, "iu"],
+  [/ow/g, "o"],
+  [/aw/g, "a"],
   [/ph/g, "p"],
   [/th/g, "t"],
   [/kh/g, "k"],

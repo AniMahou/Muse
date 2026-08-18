@@ -86,6 +86,12 @@ describe("Latin folds into the same key space", () => {
     expect(phoneticKey("Harpic")).toBe(phoneticKey("হারপিক"));
   });
 
+  it("treats post-vowel w as a glide", () => {
+    // "New" is rendered নিউ in Bangla, not with a /b/ or /v/ sound. Only
+    // initial w takes the ওয়া reading.
+    expect(phoneticKey("New")).toBe(phoneticKey("নিউ"));
+  });
+
   it("is case insensitive", () => {
     expect(phoneticKey("WHEEL")).toBe(phoneticKey("wheel"));
   });
