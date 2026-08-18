@@ -23,6 +23,45 @@ npm run lint
 
 ---
 
+## 2026-08-17 — Offline demo mode, and a port collision
+
+Two problems surfaced the first time the stack was actually run rather than
+tested.
+
+**Port collision, and it was the dangerous kind.** Host port 27017 was already
+held by another project's MongoDB, so `muse-mongo` came up with NO published
+port — and `mongodb://localhost:27017` would have connected Muse to that
+unrelated database and written into it. Nothing would have errored. Muse now
+uses 27018 and 6380, documented as deliberate.
+
+**`fake` mode could not demonstrate anything.** The fakes throw on an
+unregistered clip, which is correct for tests — a test must never silently run
+against invented input — but it meant a fresh clone with no API key could
+start the server and then fail on every upload.
+
+Fixed by making demo mode real rather than relaxing the test guarantee:
+`FakeAsrProvider` takes an OPT-IN `fallbackText` (tests never set it), and
+`DemoLlmProvider` assembles from the candidate lists it finds in the rendered
+prompt — so stages 3 and 4 still genuinely decide the output; swap the
+catalogue and the result changes.
+
+The canned transcript is the ASR-corrupted reference clip, not a clean one. A
+demo that only works on perfect input proves nothing. Verified end to end:
+
+    POST /api/observations -> 202 queued
+    worker -> 2 observations, 26 ms total
+    SKU-404 / 18 piece / OUT-1182  and  COMP-WHEEL / priceDelta -5
+    both needs_clarification, flagged on outletId + skuId
+
+That flagging is correct, not a bug: at 0.78 ASR confidence the derived field
+confidences land at 0.74-0.78, just under the 0.80 threshold. The system
+declining to be certain about a deliberately corrupted recording is the
+behaviour, demonstrated.
+
+This doubles as the exhibition's offline backup, which BrainChild requires.
+
+---
+
 ## 2026-08-17 — API, persistence, worker
 
 Mongo layer, ingest endpoint, BullMQ worker, composition root, seed script.

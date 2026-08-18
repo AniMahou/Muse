@@ -9,7 +9,7 @@ import { FakeAsrProvider } from "@/adapters/asr/fake.adapter";
 import { GroqAsrProvider } from "@/adapters/asr/groq.adapter";
 import { GeminiAsrProvider } from "@/adapters/asr/gemini.adapter";
 import { LocalWhisperProvider } from "@/adapters/asr/local-whisper.adapter";
-import { FakeLlmProvider } from "@/adapters/llm/fake.adapter";
+import { DemoLlmProvider } from "@/adapters/llm/demo.adapter";
 import { GroqLlmProvider } from "@/adapters/llm/groq.adapter";
 import { GeminiLlmProvider } from "@/adapters/llm/gemini.adapter";
 import { LocalStorage } from "@/adapters/storage/local.adapter";
@@ -62,7 +62,19 @@ export function buildAsr(): IAsrProvider {
     case "local":
       return new LocalWhisperProvider(config.whisperCppBin, config.whisperCppModel);
     case "fake":
-      return new FakeAsrProvider();
+      // Demo mode: a canned Bangla transcript for any clip, so the pipeline
+      // runs with no key and no network. Deliberately the ASR-corrupted
+      // reference clip (প্রান, দের, হইল) rather than a clean one — a demo
+      // that only works on perfect input proves nothing.
+      return new FakeAsrProvider(
+        {},
+        {
+          fallbackText:
+            "বিজয় স্টরে প্রান ম্যাঙ্গো জুস দের ডজন লাগবে " +
+            "আর হইল এর নতুন অফার দিছে পাচ টাকা কম",
+          defaultConf: 0.78,
+        },
+      );
   }
 }
 
@@ -73,7 +85,7 @@ export function buildLlm(): ILlmProvider {
     case "gemini":
       return new GeminiLlmProvider(config.geminiLlmModel, config.geminiApiKey);
     case "fake":
-      return new FakeLlmProvider({ handler: () => ({ observations: [] }) });
+      return new DemoLlmProvider();
   }
 }
 

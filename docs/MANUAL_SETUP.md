@@ -14,6 +14,12 @@ are the credentials, installs and decisions that cannot be committed.
 | Node | 20+ (26 tested) | `node -v` |
 | Docker Desktop | any recent | `docker --version` |
 
+**Ports.** Muse uses **27018** (Mongo) and **6380** (Redis), not the defaults.
+This is deliberate: 27017 and 6379 are routinely already taken by another
+project on the same machine, and pointing at a stranger's database is a silent
+failure rather than a loud one. Override with `MONGO_PORT` / `REDIS_PORT` if
+even these collide.
+
 ---
 
 ## 2. Install and start infrastructure
@@ -43,6 +49,37 @@ cp backend/.env.example backend/.env
 
 The file is heavily commented. Everything below is what you have to fill in
 yourself.
+
+---
+
+## 3b. Run it right now, with no API key
+
+`ASR_PROVIDER` and `LLM_PROVIDER` both default to `fake`, which is a real
+**offline demo mode**, not a stub:
+
+```bash
+cd backend && npm run seed:catalog
+cd .. && npm run dev
+```
+
+Then upload anything — the audio bytes are ignored — and the full pipeline
+runs with no network:
+
+```bash
+curl -X POST http://localhost:4000/api/observations \
+  -H "Authorization: Bearer <token from seed>" -H "Content-Type: application/json" \
+  -d '{"clientUuid":"'$(uuidgen)'","audioBase64":"'$(head -c 1024 /dev/urandom | base64)'",
+       "mimeType":"audio/webm","geo":{"lat":23.7806,"lng":90.4074},
+       "declaredOutletId":null,"recordedAt":"'$(date -u +%Y-%m-%dT%H:%M:%SZ)'"}'
+```
+
+The canned transcript is deliberately the ASR-CORRUPTED reference clip
+(প্রান, দের, হইল — all wrong), and the resolvers still recover SKU-404,
+18 pieces, COMP-WHEEL and OUT-1182. A demo that only worked on clean input
+would prove nothing.
+
+**This is also your exhibition backup.** Venue wifi fails; a demo that dies
+with it is a demo that did not happen.
 
 ---
 

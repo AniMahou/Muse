@@ -21,12 +21,18 @@ export class FakeAsrProvider implements IAsrProvider {
   private readonly clips: Map<string, FakeTranscriptSource>;
   private readonly defaultConf: number;
 
+  private readonly fallbackText: string | null;
+
   constructor(
     clips: Record<string, FakeTranscriptSource> | Map<string, FakeTranscriptSource> = {},
-    opts: { defaultConf?: number } = {},
+    opts: { defaultConf?: number; fallbackText?: string } = {},
   ) {
     this.clips = clips instanceof Map ? new Map(clips) : new Map(Object.entries(clips));
     this.defaultConf = opts.defaultConf ?? 0.9;
+    // Opt-in only. Tests never set this, so an unregistered clip still throws
+    // and a test can never silently run against invented input. Demo mode
+    // sets it deliberately, to run the pipeline with no network at all.
+    this.fallbackText = opts.fallbackText ?? null;
   }
 
   set(clipId: string, source: FakeTranscriptSource): this {
@@ -35,11 +41,12 @@ export class FakeAsrProvider implements IAsrProvider {
   }
 
   async transcribe(req: AsrRequest): Promise<Transcript> {
-    const found = this.clips.get(req.clipId);
+    const found = this.clips.get(req.clipId) ?? this.fallbackText ?? undefined;
     if (found === undefined) {
       throw new Error(
         `FakeAsrProvider has no fixture for clip "${req.clipId}". ` +
-          `Register one with .set(clipId, transcriptOrText) before running the pipeline.`,
+          `Register one with .set(clipId, transcriptOrText), or construct with ` +
+          `{ fallbackText } for demo mode.`,
       );
     }
     if (typeof found === "string") {

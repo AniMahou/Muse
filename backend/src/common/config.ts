@@ -30,9 +30,9 @@ const ConfigSchema = z.object({
   logLevel: z.string().default("debug"),
   corsOrigin: csv(["http://localhost:5173"]),
 
-  mongoUri: z.string().default("mongodb://localhost:27017"),
+  mongoUri: z.string().default("mongodb://localhost:27018"),
   mongoDb: z.string().default("muse"),
-  redisUrl: z.string().default("redis://localhost:6379"),
+  redisUrl: z.string().default("redis://localhost:6380"),
 
   asrProvider: z.enum(["groq", "gemini", "local", "fake"]).default("fake"),
   asrLanguage: z.string().default("bn"),
