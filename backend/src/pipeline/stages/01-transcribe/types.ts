@@ -1,13 +1,13 @@
 import { z } from "zod";
 import { TranscriptSchema } from "@shared/stage-io";
 
-export const TranscribeStageInputSchema = z.object({
-  clipId: z.string(),
-  audio: z.instanceof(Uint8Array),
-  mimeType: z.string(),
-  language: z.string().optional(),
-});
-export type TranscribeStageInput = z.infer<typeof TranscribeStageInputSchema>;
+/** Plain interface — `audio` is binary, not a serialisable contract. */
+export interface TranscribeStageInput {
+  clipId: string;
+  audio: Uint8Array;
+  mimeType: string;
+  language?: string;
+}
 
 export const TranscribeStageOutputSchema = z.object({
   transcript: TranscriptSchema,

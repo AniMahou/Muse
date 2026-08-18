@@ -167,18 +167,27 @@ export type ScoredObservation = z.infer<typeof ScoredObservationSchema>;
 // Pipeline envelope
 // ---------------------------------------------------------------------------
 
-export const PipelineInputSchema = z.object({
-  clipId: z.string(),
-  companyId: z.string(),
-  repId: z.string(),
-  audio: z.instanceof(Uint8Array).optional(),
-  storageKey: z.string(),
-  mimeType: z.string(),
-  geo: z.object({ lat: z.number(), lng: z.number() }).nullable(),
-  declaredOutletId: z.string().nullable(),
-  recordedAt: z.string(),
-});
-export type PipelineInput = z.infer<typeof PipelineInputSchema>;
+/**
+ * Envelope handed to the orchestrator.
+ *
+ * A plain interface rather than a Zod type: `audio` is binary and not part of
+ * any serialisable contract, and deriving it from `z.instanceof(Uint8Array)`
+ * pins the buffer's type parameter in a way that fights every other
+ * Uint8Array in the codebase. Zod validates what crosses a wire; this crosses
+ * a function call.
+ */
+export interface PipelineInput {
+  clipId: string;
+  companyId: string;
+  repId: string;
+  /** Present when the caller already holds the bytes; otherwise fetched from storage. */
+  audio?: Uint8Array;
+  storageKey: string;
+  mimeType: string;
+  geo: { lat: number; lng: number } | null;
+  declaredOutletId: string | null;
+  recordedAt: string;
+}
 
 export const PipelineResultSchema = z.object({
   clipId: z.string(),
