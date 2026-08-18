@@ -23,7 +23,8 @@ export class OutletResolverStage {
   private readonly maxCandidates: number;
   private readonly maxWindow: number;
   private readonly nameConfidentAt: number;
-  private readonly geoWeightWithName: number;
+  private readonly nameFloor: number;
+  private readonly maxNameWeight: number;
 
   constructor(
     private readonly outlets: IOutletRepo,
@@ -33,7 +34,8 @@ export class OutletResolverStage {
     this.maxCandidates = opts.maxCandidates ?? 5;
     this.maxWindow = opts.maxWindow ?? 3;
     this.nameConfidentAt = opts.nameConfidentAt ?? 0.85;
-    this.geoWeightWithName = opts.geoWeightWithName ?? 0.35;
+    this.nameFloor = opts.nameFloor ?? 0.45;
+    this.maxNameWeight = opts.maxNameWeight ?? 0.65;
   }
 
   async run(input: OutletStageInput): Promise<OutletStageOutput> {
@@ -72,17 +74,26 @@ export class OutletResolverStage {
 
     const spoken = this.findSpokenName(input.transcript.text, nearby);
 
+    // How much the spoken name is allowed to influence ranking, scaled by how
+    // well the best candidate actually matched.
+    //
+    // This is a RAMP rather than a gate, and the difference is not cosmetic.
+    // Gating hard at `nameConfidentAt` meant a real name match scoring 0.72 —
+    // which is what heavily corrupted ASR output looks like for a name it got
+    // right — was discarded wholesale, ranking a nearer shop first while
+    // holding good evidence it had chosen to ignore. Observations then get
+    // attributed to the wrong outlet, which is worse than being unsure.
+    const nameWeight = spoken
+      ? clamp01(
+          (spoken.best - this.nameFloor) / Math.max(1e-6, this.nameConfidentAt - this.nameFloor),
+        ) * this.maxNameWeight
+      : 0;
+
     const candidates: OutletCandidate[] = nearby.map((o) => {
       const distanceM = haversineMeters(input.geo!, o.geo);
       const prox = proximityScore(distanceM, this.radiusM);
       const nameScore = spoken ? bestNameScore(spoken.keys, o) : 0;
-
-      // Only let the name take over when SOMETHING matched confidently. A
-      // weak name signal blended into every candidate is noise that shifts
-      // the ranking without justifying it.
-      const score = spoken && spoken.best >= this.nameConfidentAt
-        ? this.geoWeightWithName * prox + (1 - this.geoWeightWithName) * nameScore
-        : prox;
+      const score = prox * (1 - nameWeight) + nameScore * nameWeight;
 
       return {
         outletId: o.outletId,
@@ -190,6 +201,11 @@ function empty(): OutletResolution {
     gpsCandidateCount: 0,
     declared: false,
   };
+}
+
+function clamp01(n: number): number {
+  if (Number.isNaN(n)) return 0;
+  return Math.max(0, Math.min(1, n));
 }
 
 function round(n: number, dp = 4): number {

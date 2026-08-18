@@ -1,4 +1,4 @@
-import { zodToJsonSchema } from "zod-to-json-schema";
+import { toStrictJsonSchema } from "./json-schema";
 import type { ILlmProvider, LlmRequest, LlmResponse } from "@/pipeline/ports";
 import { ProviderError } from "@/common/errors";
 
@@ -24,7 +24,7 @@ export class GroqLlmProvider implements ILlmProvider {
   async complete<T>(req: LlmRequest<T>): Promise<LlmResponse<T>> {
     if (!this.apiKey) throw new ProviderError(this.name, "GROQ_API_KEY is not set", false);
 
-    const jsonSchema = zodToJsonSchema(req.schema, { name: req.schemaName, target: "openApi3" });
+    const jsonSchema = toStrictJsonSchema(req.schema);
 
     const body = {
       model: this.model,

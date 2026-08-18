@@ -22,10 +22,16 @@ export interface OutletResolverOptions {
   maxCandidates?: number;
   maxWindow?: number;
   /**
-   * Name similarity at or above which the spoken name is taken to dominate
-   * proximity. Below it, ranking is by distance alone.
+   * Name similarity at which the spoken name carries its full weight.
+   *
+   * Used as the top of a RAMP, not as an on/off gate. An earlier version
+   * switched hard at this value and discarded the name signal entirely below
+   * it — which, on real speech recognition output, ranked the wrong shop
+   * first while holding a perfectly good name match it had chosen to ignore.
    */
   nameConfidentAt?: number;
-  /** Weight given to proximity once a confident spoken name exists. */
-  geoWeightWithName?: number;
+  /** Below this a name match is noise and contributes nothing. */
+  nameFloor?: number;
+  /** Largest share of the score the name may take, at full confidence. */
+  maxNameWeight?: number;
 }

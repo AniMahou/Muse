@@ -23,6 +23,67 @@ npm run lint
 
 ---
 
+## 2026-08-17 — First live run against real providers
+
+Ran the stack with real Groq keys and real speech audio (macOS Hindi TTS
+reading the reference sentence in Devanagari — not Bangla field audio, but
+real speech, which is what was needed to exercise the adapter contract).
+
+Whisper returned, verbatim:
+
+    বজোই স্তোর মে প্রান মাঙ্গো জুস দের দর্জন লগেগা ঔর ভিল কা নযা আফ্যর দিযা হে পাঁচ তকা কম
+
+Corrupted in exactly the ways the design predicts: বজোই for বিজয়, স্তোর for
+স্টোর, প্রান for প্রাণ, তকা for টাকা.
+
+**The thesis held.** `প্রান মাঙ্গো জুস` resolved to SKU-404 at 0.98 with a
+0.39 margin, on genuinely wrong ASR output. That is the whole argument,
+demonstrated outside the fixtures.
+
+### Four things only a live run could find
+
+**Groq's model catalogue moved.** `llama-3.3-70b-versatile` no longer exists.
+Now on `openai/gpt-oss-120b`.
+
+**Strict JSON-schema mode rejected our schema three ways.** Documented in
+`adapters/llm/json-schema.ts`, all found by calling the API rather than reading
+a spec. The third is the nasty one: with `anyOf: [{enum}, {type:"null"}]` the
+API accepts the schema, the model generates *perfectly valid* output, and then
+the API's own validator rejects its own generation. Null has to be folded into
+the type array AND the enum list.
+
+**A real bug in stage 4.** Whisper heard "বজোই স্তোর", which scored 0.72
+against Bijoy Store — a good match for a heavily corrupted name. The hard gate
+at 0.85 discarded that signal *entirely* and fell back to proximity, ranking
+the nearer Rahman Store first. Observations were being attributed to the wrong
+shop while the system held good evidence it had chosen to ignore.
+
+Replaced with a ramp: name influence now scales with match quality between a
+noise floor (0.45) and full confidence (0.85). Bijoy now ranks first at 0.793
+against Rahman's 0.604, despite being five metres further away. Four
+regression tests added.
+
+**দর্জন.** The Hindi/Urdu-influenced form of ডজন, genuinely used in
+Bangladesh, sits at 0.75 phonetic similarity — below the fuzzy floor. Without
+it, "দের দর্জন" parsed as **1.5 instead of 18**: a wrong but entirely
+plausible number, which is the most expensive failure this system can produce.
+Now listed explicitly.
+
+### Honest limitations of this run
+
+`ভিল` (Whisper's rendering of the Hindi "व्हील") did not resolve to Wheel —
+0.50 similarity, correctly below threshold. Real Bangla হুইল matches at 1.00
+and is covered by tests. This is a TTS artifact, not a system fault, and
+lowering the threshold to catch it would buy false positives. The consequence
+was visible though: the competitor observation was lost and the model folded
+the −5 price delta onto the PRAN product instead, mislabelling the whole thing
+`price_change`.
+
+**That is the argument for real field audio, not a reason to tune thresholds.**
+Nothing here substitutes for the 100 labelled clips.
+
+---
+
 ## 2026-08-17 — Offline demo mode, and a port collision
 
 Two problems surfaced the first time the stack was actually run rather than

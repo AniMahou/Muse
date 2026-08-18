@@ -148,6 +148,42 @@ describe("name resolution", () => {
   });
 });
 
+describe("a partial name match still counts (regression)", () => {
+  // Found by running real Groq output rather than fixtures. Whisper heard
+  // "বজোই স্তোর" for Bijoy Store — a name match of about 0.72. The original
+  // hard gate at 0.85 discarded that signal entirely and ranked the NEARER
+  // shop first, attributing the observation to the wrong outlet while holding
+  // good evidence it had chosen to ignore.
+  it("ranks the named shop first even on a corrupted name", async () => {
+    const r = await resolve("বজোই স্তোর দুই কার্টন লাগবে");
+    expect(r.candidates[0]!.outletId).toBe("OUT-1182");
+  });
+
+  it("beats a nearer shop when the name points elsewhere", async () => {
+    const r = await resolve("বজোই স্তোর দুই কার্টন লাগবে");
+    const bijoy = r.candidates.find((c) => c.outletId === "OUT-1182")!;
+    const rahman = r.candidates.find((c) => c.outletId === "OUT-1183")!;
+    expect(rahman.distanceM).toBeLessThan(bijoy.distanceM); // Rahman IS closer
+    expect(bijoy.score).toBeGreaterThan(rahman.score); // and still loses
+  });
+
+  it("name influence scales with match quality rather than switching on", async () => {
+    const clean = await resolve("বিজয় স্টোরে দুই কার্টন");
+    const corrupted = await resolve("বজোই স্তোর দুই কার্টন");
+    // Both identify the shop; the cleaner one is more certain about it.
+    expect(clean.candidates[0]!.outletId).toBe("OUT-1182");
+    expect(corrupted.candidates[0]!.outletId).toBe("OUT-1182");
+    expect(clean.margin).toBeGreaterThan(corrupted.margin);
+  });
+
+  it("ignores a name match below the noise floor", async () => {
+    // Nothing here resembles any nearby outlet; ranking must stay geographic.
+    const r = await resolve("আজকে অনেক গরম পড়েছে");
+    const distances = r.candidates.map((c) => c.distanceM);
+    expect([...distances].sort((a, b) => a - b)).toEqual(distances);
+  });
+});
+
 describe("output shape", () => {
   it("orders candidates by score", async () => {
     const r = await resolve("বিজয় স্টোরে");

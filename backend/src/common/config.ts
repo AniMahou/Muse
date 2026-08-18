@@ -44,7 +44,7 @@ const ConfigSchema = z.object({
   whisperCppModel: z.string().default(""),
 
   llmProvider: z.enum(["groq", "gemini", "fake"]).default("fake"),
-  groqLlmModel: z.string().default("llama-3.3-70b-versatile"),
+  groqLlmModel: z.string().default("openai/gpt-oss-120b"),
   geminiLlmModel: z.string().default("gemini-2.0-flash"),
   llmTemperature: num(0),
   llmMaxTokens: num(2048),

@@ -163,6 +163,14 @@ describe("ASR spelling variants", () => {
   });
 });
 
+describe("regional variants seen in real ASR output", () => {
+  // দর্জন is the Hindi/Urdu-influenced form, genuinely used in Bangladesh and
+  // produced by Whisper on real audio. At 0.75 phonetic similarity it sits
+  // below the fuzzy floor, so it has to be listed explicitly.
+  it("দের দর্জন = 18", () => expect(val("দের দর্জন")).toBe(18));
+  it("দরজন is read as a dozen", () => expect(val("এক দরজন")).toBe(12));
+});
+
 describe("fuzzy fallback for unlisted misspellings", () => {
   it("recovers a one-character corruption", () => {
     // Not in the variant table; must come through fuzzy matching.
