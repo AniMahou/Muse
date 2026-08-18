@@ -1,0 +1,20 @@
+{
+  "name": "muse",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Bangla voice to structured field intelligence",
+  "scripts": {
+    "dev:infra": "docker compose up -d",
+    "dev:infra:down": "docker compose down",
+    "dev": "npm --prefix backend run dev",
+    "test": "npm --prefix backend run test",
+    "typecheck": "npm --prefix backend run typecheck",
+    "lint": "npm --prefix backend run lint"
+  },
+  "dependencies": {
+    "zod": "^3.24.1"
+  },
+  "devDependencies": {
+    "typescript": "^5.7.3"
+  }
+}
