@@ -28,8 +28,9 @@ export const SKUS: Sku[] = [
   sku("SKU-407", "PRAN Mango Drink", "PRAN", { pack: "1L" }),
   sku("SKU-410", "PRAN Litchi Juice", "PRAN", { pack: "250ml" }),
   sku("SKU-420", "PRAN Chanachur", "PRAN", { pack: "150g" }),
-  sku("SKU-501", "Surf Excel Powder", "Surf Excel", { pack: "500g" }),
-  sku("SKU-502", "Lux Soap", "Lux", { pack: "100g" }),
+  sku("SKU-501", "Surf Excel Powder", "Surf Excel", { pack: "500g", manufacturer: "Unilever" }),
+  sku("SKU-502", "Lux Soap", "Lux", { pack: "100g", manufacturer: "Unilever" }),
+  sku("SKU-504", "Sunsilk Shampoo", "Sunsilk", { pack: "180ml", manufacturer: "Unilever" }),
   sku("SKU-503", "Harpic Toilet Cleaner", "Harpic", { pack: "500ml" }),
   sku("SKU-601", "Colgate Toothpaste", "Colgate", { pack: "100g" }),
 

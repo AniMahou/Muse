@@ -21,6 +21,15 @@ export const SkuSchema = z.object({
   name: z.string().min(1),
   /** Brand this SKU belongs to. Used to scope a rep's candidate set. */
   brand: z.string().min(1),
+  /**
+   * Parent company, where it differs from the brand.
+   *
+   * Reps say the manufacturer as readily as the brand — "Unilever এর নতুন
+   * অফার" is ordinary speech, and Lux, Surf Excel, Wheel and Rin are all
+   * Unilever. Without this, the most natural way to refer to a portfolio
+   * resolves to nothing at all.
+   */
+  manufacturer: z.string().optional(),
   /** Free-form pack descriptor, e.g. "250ml", "1L", "80g". */
   pack: z.string().optional(),
   /** True when this represents a *competitor* product rather than our own. */

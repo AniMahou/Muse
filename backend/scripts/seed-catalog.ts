@@ -26,7 +26,7 @@ const BASE = { lat: 23.7806, lng: 90.4074 };
 const company: Company = {
   companyId: COMPANY_ID,
   name: "Demo FMCG Ltd",
-  brands: ["PRAN", "Surf Excel", "Lux", "Harpic", "Colgate"],
+  brands: ["PRAN", "Surf Excel", "Lux", "Sunsilk", "Clear", "Harpic", "Colgate"],
   isDemo: true,
 };
 
@@ -45,13 +45,15 @@ const skus: Sku[] = [
   sku("SKU-407", "PRAN Mango Drink", "PRAN", { pack: "1L" }),
   sku("SKU-410", "PRAN Litchi Juice", "PRAN", { pack: "250ml" }),
   sku("SKU-420", "PRAN Chanachur", "PRAN", { pack: "150g" }),
-  sku("SKU-501", "Surf Excel Powder", "Surf Excel", { pack: "500g" }),
-  sku("SKU-502", "Lux Soap", "Lux", { pack: "100g" }),
-  sku("SKU-503", "Harpic Toilet Cleaner", "Harpic", { pack: "500ml" }),
-  sku("SKU-601", "Colgate Toothpaste", "Colgate", { pack: "100g" }),
-  sku("COMP-WHEEL", "Wheel", "Wheel", { isCompetitor: true }),
+  sku("SKU-501", "Surf Excel Powder", "Surf Excel", { pack: "500g", manufacturer: "Unilever" }),
+  sku("SKU-502", "Lux Soap", "Lux", { pack: "100g", manufacturer: "Unilever" }),
+  sku("SKU-504", "Sunsilk Shampoo", "Sunsilk", { pack: "180ml", manufacturer: "Unilever" }),
+  sku("SKU-505", "Clear Shampoo", "Clear", { pack: "180ml", manufacturer: "Unilever" }),
+  sku("SKU-503", "Harpic Toilet Cleaner", "Harpic", { pack: "500ml", manufacturer: "Reckitt" }),
+  sku("SKU-601", "Colgate Toothpaste", "Colgate", { pack: "100g", manufacturer: "Colgate" }),
+  sku("COMP-WHEEL", "Wheel", "Wheel", { isCompetitor: true, manufacturer: "Unilever" }),
   sku("COMP-WHITEPLUS", "White Plus", "White Plus", { isCompetitor: true }),
-  sku("COMP-RIN", "Rin Powder", "Rin", { isCompetitor: true }),
+  sku("COMP-RIN", "Rin Powder", "Rin", { isCompetitor: true, manufacturer: "Unilever" }),
 ];
 
 const aliases: Alias[] = [
@@ -86,7 +88,7 @@ async function main(): Promise<void> {
     territoryId: TERRITORY_ID,
     // Scoping to a portfolio is what keeps the resolver accurate at scale;
     // seeding it makes the demo exercise that path rather than bypass it.
-    brandPortfolio: ["PRAN", "Surf Excel", "Lux"],
+    brandPortfolio: ["PRAN", "Surf Excel", "Lux", "Sunsilk", "Clear"],
     active: true,
     inviteToken,
   };

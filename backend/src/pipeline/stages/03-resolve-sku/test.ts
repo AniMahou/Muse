@@ -244,6 +244,32 @@ describe("brand-only mentions", () => {
   });
 });
 
+describe("manufacturer mentions", () => {
+  // Found by a real recording: a rep said "Unilever" and nothing resolved,
+  // even though Lux, Surf Excel and Sunsilk in the catalogue are all Unilever.
+  it("resolves a manufacturer name to its products", async () => {
+    const anns = await resolve("ইউনিলিভার");
+    const ids = anns.flatMap((a) => a.candidates.map((c) => c.skuId));
+    expect(ids).toContain("SKU-502");
+  });
+
+  it("collapses the margin — a manufacturer names many products", async () => {
+    const [ann] = await resolve("ইউনিলিভার");
+    expect(ann!.candidates.length).toBeGreaterThan(1);
+    expect(ann!.margin).toBeLessThan(0.05);
+  });
+
+  it("a brand still outranks its own manufacturer", async () => {
+    const [ann] = await resolve("লাক্স");
+    expect(ann!.candidates[0]!.skuId).toBe("SKU-502");
+    expect(ann!.margin).toBeGreaterThan(0.05);
+  });
+
+  it("resolves a shampoo by brand", async () => {
+    expect(await top("সানসিল্ক শ্যাম্পু")).toBe("SKU-504");
+  });
+});
+
 describe("competitor flag", () => {
   it("marks competitor products", async () => {
     const [ann] = await resolve("হুইল");

@@ -15,6 +15,7 @@ interface IndexedSku {
   /** Phonetic keys of pack tokens; matched for bonus, never required. */
   packKeys: string[];
   brandKey: string;
+  manufacturerKey: string;
 }
 
 interface IndexedAlias {
@@ -218,7 +219,13 @@ function buildIndex(skus: Sku[]): IndexedSku[] {
       if (PACK_TOKEN.test(p)) packKeys.push(key);
       else coreKeys.push(key);
     }
-    return { sku, coreKeys, packKeys, brandKey: phoneticKey(sku.brand.replace(/\s+/g, "")) };
+    return {
+      sku,
+      coreKeys,
+      packKeys,
+      brandKey: phoneticKey(sku.brand.replace(/\s+/g, "")),
+      manufacturerKey: sku.manufacturer ? phoneticKey(sku.manufacturer.replace(/\s+/g, "")) : "",
+    };
   });
 }
 
@@ -263,7 +270,11 @@ function buildAliasIndex(aliases: Alias[], skus: Sku[]): Map<string, IndexedAlia
 const BRAND_ONLY_CAP = 0.85;
 
 function scoreWindow(windowKeys: string[], entry: IndexedSku): number {
-  return Math.max(scoreByName(windowKeys, entry), scoreByBrand(windowKeys, entry));
+  return Math.max(
+    scoreByName(windowKeys, entry),
+    scoreByBrand(windowKeys, entry),
+    scoreByManufacturer(windowKeys, entry),
+  );
 }
 
 function scoreByName(windowKeys: string[], entry: IndexedSku): number {
@@ -305,6 +316,31 @@ function scoreByName(windowKeys: string[], entry: IndexedSku): number {
   }
 
   return Math.min(1, recall * (0.55 + 0.45 * (usedWindow.size / windowKeys.length)) + packBonus);
+}
+
+/**
+ * A bare manufacturer mention, capped below even a brand-only match.
+ *
+ * "Unilever" names dozens of products, so it should resolve to all of them at
+ * an identical score — collapsing the margin to zero and letting stage 6 ask
+ * which one was meant. That is the correct reading of a genuinely ambiguous
+ * utterance, and it is exactly what the cap produces.
+ */
+const MANUFACTURER_ONLY_CAP = 0.7;
+
+function scoreByManufacturer(windowKeys: string[], entry: IndexedSku): number {
+  if (entry.manufacturerKey.length === 0 || windowKeys.length === 0) return 0;
+  // Skip when the manufacturer IS the brand (PRAN), so the brand route owns it.
+  if (entry.manufacturerKey === entry.brandKey) return 0;
+
+  let best = 0;
+  for (const key of windowKeys) {
+    const sim = phoneticSimilarity(entry.manufacturerKey, key);
+    if (sim > best) best = sim;
+  }
+  if (best < 0.85) return 0;
+
+  return Math.min(MANUFACTURER_ONLY_CAP, best * (0.55 + 0.45 / windowKeys.length) * MANUFACTURER_ONLY_CAP);
 }
 
 function scoreByBrand(windowKeys: string[], entry: IndexedSku): number {
