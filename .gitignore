@@ -20,3 +20,6 @@ npm-debug.log*
 .idea/
 .vscode/
 *.tsbuildinfo
+
+# Stitch exports live unzipped in design/; the archives do not.
+*.zip
