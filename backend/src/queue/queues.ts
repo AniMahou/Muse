@@ -11,7 +11,7 @@ export interface ProcessClipJob {
 }
 
 export interface ClarificationTimeoutJob {
-  observationId: string;
+  clarificationId: string;
   companyId: string;
 }
 

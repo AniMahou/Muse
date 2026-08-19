@@ -6,7 +6,10 @@ import { repAuth } from "./auth.middleware";
 
 export function ingestRoutes(container: Container, uploads: UploadService): Router {
   const router = Router();
-  router.use(repAuth(container.collections));
+  // Per-route rather than router.use: this router is mounted at /api, so a
+  // router-wide guard would also reject /api/admin/* before the admin router
+  // is ever reached.
+  const auth = repAuth(container.collections);
 
   /**
    * POST /observations — accept one recording.
@@ -19,7 +22,7 @@ export function ingestRoutes(container: Container, uploads: UploadService): Rout
    * error, because a duplicate upload is normal operation — the offline queue
    * retries — not a client mistake.
    */
-  router.post("/observations", async (req: Request, res: Response, next: NextFunction) => {
+  router.post("/observations", auth, async (req: Request, res: Response, next: NextFunction) => {
     try {
       const rep = req.rep;
       if (!rep) throw new AppError("unauthenticated", 401, "unauthenticated");
@@ -36,7 +39,7 @@ export function ingestRoutes(container: Container, uploads: UploadService): Rout
   });
 
   /** Lets the app show a clip moving through the pipeline. */
-  router.get("/clips/:clipId", async (req: Request, res: Response, next: NextFunction) => {
+  router.get("/clips/:clipId", auth, async (req: Request, res: Response, next: NextFunction) => {
     try {
       const rep = req.rep;
       if (!rep) throw new AppError("unauthenticated", 401, "unauthenticated");

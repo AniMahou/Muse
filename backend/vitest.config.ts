@@ -13,7 +13,12 @@ export default defineConfig({
     environment: "node",
     // Stage folders keep their suite as `test.ts` alongside index.ts; other
     // modules use `*.test.ts`. Both are collected.
-    include: ["src/**/*.test.ts", "src/**/test.ts", "tests/**/*.test.ts"],
+    include: [
+      "src/**/*.test.ts",
+      "src/**/test.ts",
+      "tests/**/*.test.ts",
+      "eval/**/*.test.ts",
+    ],
     // Tier 2 (contract) tests hit live provider APIs and are excluded from the
     // default run. Invoke explicitly with `npm run test:contract`.
     exclude: ["node_modules/**", "dist/**", "tests/contract/**"],

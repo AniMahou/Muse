@@ -54,6 +54,22 @@ export function makeProcessClip(container: Container) {
         error: null,
       });
 
+      // Turn flagged fields into one-tap questions, and harvest surface forms
+      // the resolver was unsure about for the alias approval queue. Both are
+      // the learning loop: a rep answers once, an admin approves once, and the
+      // system stops being uncertain about that thing.
+      let prompts = 0;
+      for (const obs of saved) {
+        if (obs.flaggedFields.length === 0) continue;
+        const created = await container.clarifications.createFor(obs, result.annotations);
+        prompts += created.length;
+      }
+      const aliasCandidates = await container.aliases.recordFrom(
+        companyId,
+        clipId,
+        result.annotations.skus,
+      );
+
       container.realtime.clipStatus(companyId, { clipId, status: "processed" });
       container.realtime.observationsCreated(companyId, saved);
 
@@ -62,6 +78,8 @@ export function makeProcessClip(container: Container) {
           clipId,
           observations: saved.length,
           flagged: saved.filter((o) => o.status === "needs_clarification").length,
+          prompts,
+          aliasCandidates,
           ms: Date.now() - started,
           cacheHits: result.cacheHits,
         },

@@ -1,5 +1,6 @@
 import Redis from "ioredis";
 import type { Db } from "mongodb";
+import type { Queue } from "bullmq";
 import { config, assertProviderKeys } from "@/common/config";
 import { logger } from "@/common/logger";
 import { collections, type Collections } from "@/db/client";
@@ -27,6 +28,11 @@ import { PipelineOrchestrator } from "@/pipeline/orchestrator";
 import { ObservationRepository } from "@/observations/repository";
 import { IdempotencyService } from "@/ingest/idempotency.service";
 import { RealtimeGateway } from "@/realtime/gateway";
+import { ClarificationService } from "@/clarification/service";
+import { CatalogImportService } from "@/catalog/import.service";
+import { AliasService } from "@/catalog/alias.service";
+import { AnalyticsService } from "@/analytics/service";
+import { makeQueue, CLARIFY_QUEUE, type ClarificationTimeoutJob } from "@/queue/queues";
 
 /**
  * The composition root — the ONE place concrete adapters are chosen.
@@ -50,6 +56,11 @@ export interface Container {
   llm: ILlmProvider;
   orchestrator: PipelineOrchestrator;
   buildOrchestrator(opts?: { brands?: string[] }): PipelineOrchestrator;
+  clarifications: ClarificationService;
+  imports: CatalogImportService;
+  aliases: AliasService;
+  analytics: AnalyticsService;
+  clarifyQueue: Queue<ClarificationTimeoutJob>;
   close(): Promise<void>;
 }
 
@@ -142,6 +153,10 @@ export function buildContainer(db: Db): Container {
       },
     );
 
+  const repo = new ObservationRepository(cols);
+  const realtime = new RealtimeGateway();
+  const clarifyQueue = makeQueue<ClarificationTimeoutJob>(CLARIFY_QUEUE);
+
   logger.info(
     { asr: `${asr.name}/${asr.model}`, llm: `${llm.name}/${llm.model}`, storage: storage.name },
     "container built",
@@ -150,15 +165,27 @@ export function buildContainer(db: Db): Container {
   return {
     redis,
     collections: cols,
-    repo: new ObservationRepository(cols),
+    repo,
     idempotency: new IdempotencyService(redis),
-    realtime: new RealtimeGateway(),
+    realtime,
     storage,
     asr,
     llm,
     orchestrator: buildOrchestrator(),
     buildOrchestrator,
+    clarifications: new ClarificationService(
+      cols,
+      repo,
+      realtime,
+      clarifyQueue,
+      config.clarificationTimeoutHours,
+    ),
+    imports: new CatalogImportService(cols),
+    aliases: new AliasService(cols),
+    analytics: new AnalyticsService(cols),
+    clarifyQueue,
     async close() {
+      await clarifyQueue.close();
       redis.disconnect();
     },
   };

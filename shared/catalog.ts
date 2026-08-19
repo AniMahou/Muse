@@ -102,5 +102,13 @@ export const CompanySchema = z.object({
   brands: z.array(z.string()).default([]),
   /** Open-join sandbox tenant used for the exhibition booth. */
   isDemo: z.boolean().default(false),
+  /**
+   * Bearer credential for the admin console.
+   *
+   * Deliberately separate from a rep's token: a rep token can only hand in a
+   * recording, while this one reads the company's whole field intelligence and
+   * rewrites its master data.
+   */
+  adminToken: z.string().optional(),
 });
 export type Company = z.infer<typeof CompanySchema>;

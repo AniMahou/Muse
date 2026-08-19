@@ -1,7 +1,13 @@
 import { logger } from "@/common/logger";
 import { connectMongo, closeMongo } from "@/db/client";
 import { buildContainer } from "@/container";
-import { makeWorker, CLIP_QUEUE, type ProcessClipJob } from "@/queue/queues";
+import {
+  makeWorker,
+  CLIP_QUEUE,
+  CLARIFY_QUEUE,
+  type ProcessClipJob,
+  type ClarificationTimeoutJob,
+} from "@/queue/queues";
 import { makeProcessClip } from "@/queue/processors/process-clip";
 
 /**
@@ -18,16 +24,24 @@ async function main(): Promise<void> {
 
   const worker = makeWorker<ProcessClipJob>(CLIP_QUEUE, makeProcessClip(container));
 
+  // Each clarification schedules its own delayed job at creation, which is why
+  // there is no sweeper anywhere: a prompt cannot pile up unresolved, because
+  // its resolution was scheduled the moment it existed.
+  const clarifyWorker = makeWorker<ClarificationTimeoutJob>(CLARIFY_QUEUE, async (job) => {
+    await container.clarifications.autoResolve(job.data.clarificationId);
+  });
+
   worker.on("completed", (job) => logger.debug({ jobId: job.id }, "job completed"));
   worker.on("failed", (job, err) =>
     logger.warn({ jobId: job?.id, err: err.message }, "job failed"),
   );
 
-  logger.info({ queue: CLIP_QUEUE }, "muse worker started");
+  logger.info({ queues: [CLIP_QUEUE, CLARIFY_QUEUE] }, "muse worker started");
 
   const shutdown = async (signal: string) => {
     logger.info({ signal }, "shutting down worker");
     await worker.close();
+    await clarifyWorker.close();
     await container.close();
     await closeMongo();
     process.exit(0);

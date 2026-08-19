@@ -1,6 +1,7 @@
 import { MongoClient, type Collection, type Db } from "mongodb";
 import type { Alias, Company, Outlet, Rep, Sku, Territory } from "@shared/catalog";
 import type { Clip, Observation } from "@shared/observation.schema";
+import type { AliasCandidate, Clarification } from "@shared/clarification.schema";
 import { config } from "@/common/config";
 import { logger } from "@/common/logger";
 
@@ -25,6 +26,8 @@ export interface Collections {
   outlets: Collection<OutletDoc>;
   clips: Collection<Clip>;
   observations: Collection<Observation>;
+  clarifications: Collection<Clarification>;
+  aliasCandidates: Collection<AliasCandidate>;
 }
 
 let client: MongoClient | null = null;
@@ -49,6 +52,8 @@ export function collections(database: Db): Collections {
     outlets: database.collection<OutletDoc>("outlets"),
     clips: database.collection<Clip>("clips"),
     observations: database.collection<Observation>("observations"),
+    clarifications: database.collection<Clarification>("clarifications"),
+    aliasCandidates: database.collection<AliasCandidate>("aliasCandidates"),
   };
 }
 
@@ -87,6 +92,16 @@ export async function ensureIndexes(database: Db): Promise<void> {
     c.observations.createIndex({ clipId: 1 }),
     c.observations.createIndex({ companyId: 1, outletId: 1, createdAt: -1 }),
     c.observations.createIndex({ companyId: 1, skuId: 1, createdAt: -1 }),
+
+    c.clarifications.createIndex({ clarificationId: 1 }, { unique: true }),
+    // The rep's pending-prompt query, run every time the app opens.
+    c.clarifications.createIndex({ companyId: 1, repId: 1, status: 1, createdAt: 1 }),
+    c.clarifications.createIndex({ observationId: 1 }),
+
+    // One row per surface form per company: repeated hearings increment a
+    // counter rather than piling up duplicates for a reviewer to wade through.
+    c.aliasCandidates.createIndex({ companyId: 1, surface: 1 }, { unique: true }),
+    c.aliasCandidates.createIndex({ companyId: 1, status: 1, occurrences: -1 }),
   ]);
 
   logger.info("mongo indexes ensured");

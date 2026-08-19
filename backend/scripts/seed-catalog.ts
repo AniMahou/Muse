@@ -23,9 +23,12 @@ const COMPANY_ID = "demo-fmcg";
 const TERRITORY_ID = "T-MIRPUR";
 const BASE = { lat: 23.7806, lng: 90.4074 };
 
+const ADMIN_TOKEN = process.env.SEED_ADMIN_TOKEN ?? "dev-admin-muse";
+
 const company: Company = {
   companyId: COMPANY_ID,
   name: "Demo FMCG Ltd",
+  adminToken: ADMIN_TOKEN,
   brands: ["PRAN", "Surf Excel", "Lux", "Sunsilk", "Clear", "Harpic", "Colgate"],
   isDemo: true,
 };
@@ -124,7 +127,8 @@ async function main(): Promise<void> {
   console.log("  Demo tenant ready.");
   console.log(`  companyId : ${COMPANY_ID}`);
   console.log(`  repId     : ${rep.repId}`);
-  console.log(`  token     : ${inviteToken}`);
+  console.log(`  rep token : ${inviteToken}`);
+  console.log(`  admin tok : ${ADMIN_TOKEN}`);
   console.log(`  GPS        : ${BASE.lat}, ${BASE.lng}  (inside the outlet cluster)`);
   console.log("\n  Upload a clip:");
   console.log(`    curl -X POST http://localhost:4000/api/observations \\`);

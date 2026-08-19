@@ -6,6 +6,8 @@ import { config } from "@/common/config";
 import type { Container } from "@/container";
 import type { UploadService } from "@/ingest/upload.service";
 import { ingestRoutes } from "@/ingest/routes";
+import { clarificationRoutes } from "@/clarification/routes";
+import { adminRoutes } from "@/admin/routes";
 
 /**
  * Builds the Express app. Deliberately does NOT call listen — server.ts owns
@@ -24,6 +26,20 @@ export function buildApp(container: Container, uploads: UploadService): Express 
   });
 
   app.use("/api", ingestRoutes(container, uploads));
+  app.use("/api", clarificationRoutes(container.collections, container.clarifications));
+  app.use(
+    "/api/admin",
+    // CSV arrives as a raw text body; JSON parsing would reject it.
+    express.text({ type: ["text/csv", "text/plain"], limit: "8mb" }),
+    adminRoutes({
+      collections: container.collections,
+      repo: container.repo,
+      imports: container.imports,
+      aliases: container.aliases,
+      analytics: container.analytics,
+      clarifications: container.clarifications,
+    }),
+  );
 
   app.use((_req: Request, res: Response) => {
     res.status(404).json({ error: "not_found" });
