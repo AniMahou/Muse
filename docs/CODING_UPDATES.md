@@ -9,10 +9,13 @@ surprises behind it. Newest first.
 
 | | |
 |---|---|
-| **Tests** | 299 passing, ~0.6 s |
-| **Pipeline** | complete, stages 1–6, end-to-end green |
+| **Tests** | **399 passing** (~0.9 s; 31 need Docker and skip without it) |
+| **Pipeline** | complete, stages 1–6, verified on live Groq |
 | **API + worker** | complete, runnable |
-| **Remaining** | clarification loop, admin surfaces, eval harness |
+| **Clarification** | complete, incl. the late-answer edge case |
+| **Admin** | catalogue import, alias approvals, reps, analytics |
+| **Eval harness** | complete — **blocked on labelled clips, not on code** |
+| **Frontend** | not started, by instruction |
 
 ```bash
 cd backend
@@ -20,6 +23,105 @@ npm test            # 299 tests, no network, no API key
 npm run typecheck
 npm run lint
 ```
+
+---
+
+## 2026-08-19 — Clarification, admin surfaces, analytics, eval harness
+
+The backend is complete. Everything from the original plan is built, tested
+and exercised against the live API key.
+
+### Clarification
+
+Flagged fields become one-tap Bangla questions. Never a re-recording: by the
+time a prompt lands the rep is between outlets, and asking him to record again
+means he never answers.
+
+Each prompt schedules its **own** BullMQ delayed job at creation. That is why
+there is no sweeper anywhere in this codebase — a prompt cannot pile up
+unresolved, because its resolution was scheduled the moment it existed.
+
+The edge case worth naming: an answer arriving **after** auto-resolution still
+applies and re-emits. The record had already been confirmed with a guess and
+pushed to a dashboard; discarding the correction as stale would leave a known
+wrong value on a manager's screen. Covered by an integration test.
+
+A question with fewer than two options is not asked at all. That is not a
+question, and it belongs in HQ review instead.
+
+### Catalogue import
+
+A hand-written CSV reader rather than a dependency, because the failure modes
+here are specific and each one corrupts master data *silently*: Bangla names
+with commas inside quotes, Excel's UTF-8 BOM, CRLF endings.
+
+Rows are validated individually and bad ones reported. A 2,000-row outlet
+master with three malformed rows imports 1,997 and tells you about the three —
+rejecting the file would be worse.
+
+### Alias approvals — the learning loop
+
+Uncertain matches are harvested as surface forms with an occurrence count. An
+admin approves once and the resolver stops being uncertain about that word,
+permanently, for every rep in the company.
+
+Approval can **override** the suggestion, which is the entire point of putting
+a human here: they can say "that word means this OTHER product", which no
+amount of phonetic similarity would ever find.
+
+**Known limitation, worth stating plainly.** A form that matches *nothing*
+produces no annotation at all, so it can never become a candidate — and that is
+exactly the case where an alias would help most (`ভিল` for Wheel, from the
+earlier live run). Catching those needs stage 3 to emit sub-threshold
+near-misses, which changes its output contract. Deliberately not done under
+deadline; recorded here rather than quietly left.
+
+### Analytics
+
+Share of voice counts distinct **outlets** alongside raw mentions — one
+talkative rep repeating himself is not a market movement. Plus the stock-out
+grid, price erosion, rep coverage and type breakdown.
+
+Records awaiting clarification are included on purpose. "12 shops, 3
+unconfirmed" is useful; silently dropping uncertain data makes the numbers
+quietly wrong, which is worse than showing them with a caveat.
+
+### Eval harness
+
+**Not a test.** Tests are deterministic and gate every commit; this is
+stochastic, costs money, and produces metrics. Conflating the two produces a
+flaky CI that eventually gets switched off.
+
+Reports WER beside field accuracy — *the gap is the argument* — per-field
+precision and recall separating `wrong` from `spurious`, a calibration diagram
+with ECE, and gate effectiveness (flag N% of fields, catch M% of errors). Fails
+the run on a >2pp accuracy regression, so a prompt change cannot quietly make
+things worse.
+
+It runs today and produces nothing, because there are no labelled clips. That
+is the honest state: **the harness is blocked on data collection, not on code.**
+
+### Two real bugs found by running it
+
+**Router-wide auth leak.** `app.use("/api", ingestRoutes)` meant that router's
+`repAuth` guard also ran for `/api/admin/*`, so every admin request 401'd
+before the admin router was ever reached. The symptom looked like a bad token.
+Auth is now attached per-route rather than depending on mount ordering.
+
+**Silently skipped integration tests.** `describe.skipIf` is evaluated during
+collection, *before* `beforeAll` runs, so the Mongo availability probe always
+read `false` and all 31 integration tests reported as skipped while looking
+perfectly green. Probe moved to module scope. Worth remembering — a suite that
+skips is far more dangerous than one that fails.
+
+### Verified live against the API key
+
+    CSV import       4 rows parsed, 3 imported, 1 malformed row reported
+    Bangla outlets   "নিউ মার্কেট স্টোর, ঢাকা" imported with the comma intact
+    Auth boundary    rep token on an admin route -> 401
+    Clarification    "কোন দোকান?" with 3 ranked options -> answered ->
+                     confidence 1, flag cleared, status confirmed
+    Analytics        all six endpoints returning real aggregates
 
 ---
 
