@@ -27,7 +27,7 @@ export function authRoutes(auth: AuthService): Router {
 
   r.get("/auth/me", requireAuth(), wrap(async (req, res) => {
     if (!req.auth) throw new AppError("unauthenticated", 401, "unauthenticated");
-    res.json({ user: await auth.me(req.auth.userId) });
+    res.json(await auth.me(req.auth.userId));
   }));
 
   r.post(

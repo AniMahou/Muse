@@ -122,10 +122,22 @@ export class AuthService {
     return rows.map(toPublic);
   }
 
-  async me(userId: string): Promise<PublicUser> {
+  /**
+   * Restore a session from a stored token.
+   *
+   * Returns the company alongside the user because the client has no other
+   * way to recover it on reload — the name is not in the token, and without
+   * this the console falls back to a placeholder after every refresh.
+   */
+  async me(userId: string): Promise<{ user: PublicUser; company: { companyId: string; name: string } }> {
     const user = await this.c.users.findOne({ userId });
     if (!user) throw new AppError("user not found", 404, "not_found");
-    return toPublic(user);
+
+    const company = await this.c.companies.findOne({ companyId: user.companyId });
+    return {
+      user: toPublic(user),
+      company: { companyId: user.companyId, name: company?.name ?? "" },
+    };
   }
 
   private session(user: User, companyName: string): AuthResponse {

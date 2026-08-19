@@ -6,15 +6,18 @@
   "scripts": {
     "dev:infra": "docker compose up -d",
     "dev:infra:down": "docker compose down",
-    "dev": "npm --prefix backend run dev",
+    "dev": "concurrently -n api,worker,web -c blue,green,magenta \"npm --prefix backend run dev:api\" \"npm --prefix backend run dev:worker\" \"npm --prefix frontend run dev\"",
     "test": "npm --prefix backend run test",
     "typecheck": "npm --prefix backend run typecheck",
-    "lint": "npm --prefix backend run lint"
+    "lint": "npm --prefix backend run lint",
+    "dev:web": "npm --prefix frontend run dev",
+    "build": "npm --prefix frontend run build"
   },
   "dependencies": {
     "zod": "^3.24.1"
   },
   "devDependencies": {
-    "typescript": "^5.7.3"
+    "typescript": "^5.7.3",
+    "concurrently": "^9.1.2"
   }
 }
