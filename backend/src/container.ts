@@ -32,6 +32,7 @@ import { ClarificationService } from "@/clarification/service";
 import { CatalogImportService } from "@/catalog/import.service";
 import { AliasService } from "@/catalog/alias.service";
 import { AnalyticsService } from "@/analytics/service";
+import { AuthService } from "@/auth/service";
 import { makeQueue, CLARIFY_QUEUE, type ClarificationTimeoutJob } from "@/queue/queues";
 
 /**
@@ -60,6 +61,7 @@ export interface Container {
   imports: CatalogImportService;
   aliases: AliasService;
   analytics: AnalyticsService;
+  auth: AuthService;
   clarifyQueue: Queue<ClarificationTimeoutJob>;
   close(): Promise<void>;
 }
@@ -183,6 +185,7 @@ export function buildContainer(db: Db): Container {
     imports: new CatalogImportService(cols),
     aliases: new AliasService(cols),
     analytics: new AnalyticsService(cols),
+    auth: new AuthService(cols),
     clarifyQueue,
     async close() {
       await clarifyQueue.close();

@@ -8,6 +8,7 @@ import type { UploadService } from "@/ingest/upload.service";
 import { ingestRoutes } from "@/ingest/routes";
 import { clarificationRoutes } from "@/clarification/routes";
 import { adminRoutes } from "@/admin/routes";
+import { authRoutes } from "@/auth/routes";
 
 /**
  * Builds the Express app. Deliberately does NOT call listen — server.ts owns
@@ -25,6 +26,7 @@ export function buildApp(container: Container, uploads: UploadService): Express 
     res.json({ ok: true, asr: container.asr.name, llm: container.llm.name });
   });
 
+  app.use("/api", authRoutes(container.auth));
   app.use("/api", ingestRoutes(container, uploads));
   app.use("/api", clarificationRoutes(container.collections, container.clarifications));
   app.use(

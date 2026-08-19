@@ -1,6 +1,6 @@
 import type { NextFunction, Request, Response } from "express";
 import type { Collections } from "@/db/client";
-import { AppError } from "@/common/errors";
+import { requireAuth, requireRole } from "@/auth/middleware";
 
 declare module "express-serve-static-core" {
   interface Request {
@@ -9,27 +9,25 @@ declare module "express-serve-static-core" {
 }
 
 /**
- * Company-admin authentication.
+ * Console access: owner or admin only.
  *
- * Separate from rep auth on purpose. A rep token grants exactly one ability —
- * hand in a recording — while an admin token can read the whole company's
- * field intelligence and rewrite its master data. Conflating them would mean
- * a phone lost in a market leaks the outlet coverage of a national brand.
+ * Deliberately not the same guard as a rep's. A rep token grants exactly one
+ * ability — hand in a recording — while this one reads the company's whole
+ * field intelligence and rewrites its master data. A phone lost in a market
+ * must not leak a national brand's outlet coverage.
  */
-export function adminAuth(collections: Collections) {
-  return async function (req: Request, _res: Response, next: NextFunction): Promise<void> {
-    try {
-      const header = req.header("authorization") ?? "";
-      const token = header.startsWith("Bearer ") ? header.slice(7).trim() : "";
-      if (token.length === 0) throw new AppError("missing bearer token", 401, "unauthenticated");
+export function adminAuth(_collections: Collections) {
+  const auth = requireAuth();
+  const role = requireRole("owner", "admin");
 
-      const company = await collections.companies.findOne({ adminToken: token } as never);
-      if (!company) throw new AppError("invalid admin token", 401, "unauthenticated");
-
-      req.admin = { companyId: company.companyId, name: company.name };
-      next();
-    } catch (err) {
-      next(err);
-    }
+  return function (req: Request, res: Response, next: NextFunction): void {
+    auth(req, res, (err?: unknown) => {
+      if (err) return next(err);
+      role(req, res, (err2?: unknown) => {
+        if (err2) return next(err2);
+        req.admin = { companyId: req.auth!.companyId, name: req.auth!.name };
+        next();
+      });
+    });
   };
 }

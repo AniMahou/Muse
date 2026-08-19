@@ -30,6 +30,9 @@ const ConfigSchema = z.object({
   logLevel: z.string().default("debug"),
   corsOrigin: csv(["http://localhost:5173"]),
 
+  jwtSecret: z.string().min(16, "JWT_SECRET must be at least 16 characters"),
+  jwtExpiresIn: z.string().default("7d"),
+
   mongoUri: z.string().default("mongodb://localhost:27018"),
   mongoDb: z.string().default("muse"),
   redisUrl: z.string().default("redis://localhost:6380"),
@@ -82,6 +85,12 @@ function read(): Config {
     port: env.PORT,
     logLevel: env.LOG_LEVEL,
     corsOrigin: env.CORS_ORIGIN,
+
+    // Dev-only fallback so a fresh clone boots; production must set it.
+    jwtSecret:
+      env.JWT_SECRET ??
+      (env.NODE_ENV === "production" ? undefined : "muse-dev-secret-change-me-in-production"),
+    jwtExpiresIn: env.JWT_EXPIRES_IN,
 
     mongoUri: env.MONGO_URI,
     mongoDb: env.MONGO_DB,

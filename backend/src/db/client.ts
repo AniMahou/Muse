@@ -2,6 +2,7 @@ import { MongoClient, type Collection, type Db } from "mongodb";
 import type { Alias, Company, Outlet, Rep, Sku, Territory } from "@shared/catalog";
 import type { Clip, Observation } from "@shared/observation.schema";
 import type { AliasCandidate, Clarification } from "@shared/clarification.schema";
+import type { User } from "@shared/auth.schema";
 import { config } from "@/common/config";
 import { logger } from "@/common/logger";
 
@@ -28,6 +29,7 @@ export interface Collections {
   observations: Collection<Observation>;
   clarifications: Collection<Clarification>;
   aliasCandidates: Collection<AliasCandidate>;
+  users: Collection<User>;
 }
 
 let client: MongoClient | null = null;
@@ -54,6 +56,7 @@ export function collections(database: Db): Collections {
     observations: database.collection<Observation>("observations"),
     clarifications: database.collection<Clarification>("clarifications"),
     aliasCandidates: database.collection<AliasCandidate>("aliasCandidates"),
+    users: database.collection<User>("users"),
   };
 }
 
@@ -102,6 +105,12 @@ export async function ensureIndexes(database: Db): Promise<void> {
     // counter rather than piling up duplicates for a reviewer to wade through.
     c.aliasCandidates.createIndex({ companyId: 1, surface: 1 }, { unique: true }),
     c.aliasCandidates.createIndex({ companyId: 1, status: 1, occurrences: -1 }),
+
+    c.users.createIndex({ userId: 1 }, { unique: true }),
+    // Login looks up by email alone, so it must be globally unique — not
+    // per-company, or the same address could sign in to two tenants.
+    c.users.createIndex({ email: 1 }, { unique: true }),
+    c.users.createIndex({ companyId: 1, role: 1 }),
   ]);
 
   logger.info("mongo indexes ensured");

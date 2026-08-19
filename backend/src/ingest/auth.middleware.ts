@@ -1,6 +1,7 @@
 import type { NextFunction, Request, Response } from "express";
 import type { Collections } from "@/db/client";
 import { AppError } from "@/common/errors";
+import { requireAuth, requireRep } from "@/auth/middleware";
 
 declare module "express-serve-static-core" {
   interface Request {
@@ -9,35 +10,43 @@ declare module "express-serve-static-core" {
 }
 
 /**
- * Resolves a field representative from their invite token.
+ * Resolve the field representative behind a JWT.
  *
- * Reps are PROVISIONED, never self-registered. No FMCG company will let
- * anyone claiming to be a rep sign up and pull down their SKU master, outlet
- * list and territory coverage — that is competitive intelligence. An admin
- * imports the roster and the system issues tokens.
- *
- * The token is a bearer credential: whoever holds it is the rep. That is
- * appropriate for a device-bound field app and is why tokens are never logged
- * or returned by any endpoint.
+ * Runs requireAuth and requireRep first, then loads the Rep record so handlers
+ * get the brand portfolio — which is not in the token, because it changes when
+ * an admin reassigns a territory and a stale copy would silently narrow the
+ * resolver's candidate set to the wrong products.
  */
 export function repAuth(collections: Collections) {
-  return async function (req: Request, _res: Response, next: NextFunction): Promise<void> {
-    try {
-      const header = req.header("authorization") ?? "";
-      const token = header.startsWith("Bearer ") ? header.slice(7).trim() : "";
-      if (token.length === 0) throw new AppError("missing bearer token", 401, "unauthenticated");
+  const auth = requireAuth();
+  const rep = requireRep();
 
-      const rep = await collections.reps.findOne({ inviteToken: token, active: true });
-      if (!rep) throw new AppError("invalid token", 401, "unauthenticated");
+  return function (req: Request, res: Response, next: NextFunction): void {
+    auth(req, res, (err?: unknown) => {
+      if (err) return next(err);
+      rep(req, res, async (err2?: unknown) => {
+        if (err2) return next(err2);
+        try {
+          const claims = req.auth;
+          if (!claims?.repId) throw new AppError("no rep record", 403, "forbidden");
 
-      req.rep = {
-        repId: rep.repId,
-        companyId: rep.companyId,
-        brandPortfolio: rep.brandPortfolio ?? [],
-      };
-      next();
-    } catch (err) {
-      next(err);
-    }
+          const record = await collections.reps.findOne({
+            repId: claims.repId,
+            companyId: claims.companyId,
+            active: true,
+          });
+          if (!record) throw new AppError("rep record not found", 403, "forbidden");
+
+          req.rep = {
+            repId: record.repId,
+            companyId: record.companyId,
+            brandPortfolio: record.brandPortfolio ?? [],
+          };
+          next();
+        } catch (e) {
+          next(e);
+        }
+      });
+    });
   };
 }
