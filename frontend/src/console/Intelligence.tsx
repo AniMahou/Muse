@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { api } from "@/shared/lib/api";
+import { useDirectory, formatDelta } from "./lib/directory";
 
 interface Voice { competitorBrand: string; mentions: number; outletCount: number; highSeverity: number }
 interface Price { skuId: string | null; competitorBrand: string | null; avgDelta: number; minDelta: number; reports: number; outletCount: number }
@@ -7,6 +8,7 @@ interface Coverage { repId: string; observations: number; clipCount: number; out
 interface TypeRow { type: string; severity: string; count: number }
 
 export function Intelligence() {
+  const dir = useDirectory();
   const q = <T,>(key: string, path: string) =>
     useQuery({ queryKey: [key], queryFn: () => api.get<{ rows: T[] }>(path) });
 
@@ -31,7 +33,7 @@ export function Intelligence() {
             {(voice.data?.rows ?? []).map((r) => (
               <div key={r.competitorBrand}>
                 <div className="flex justify-between text-sm mb-1.5">
-                  <span className="font-medium">{r.competitorBrand}</span>
+                  <span className="font-medium">{dir.sku(r.competitorBrand)}</span>
                   <span className="text-ink-muted tabular-nums">
                     {r.mentions} · {r.outletCount} outlet{r.outletCount === 1 ? "" : "s"}
                   </span>
@@ -52,13 +54,13 @@ export function Intelligence() {
           <div className="space-y-3">
             {(price.data?.rows ?? []).map((r, i) => (
               <div key={i} className="flex items-center justify-between gap-4 text-sm">
-                <span className="truncate">{r.skuId ?? r.competitorBrand ?? "—"}</span>
+                <span className="truncate">{dir.sku(r.skuId ?? r.competitorBrand)}</span>
                 <span className="flex items-center gap-3 shrink-0">
                   <span className="text-ink-muted text-xs tabular-nums">{r.reports} report(s)</span>
                   <span className={`tabular-nums font-semibold ${
                     r.avgDelta < 0 ? "text-critical" : "text-confident"
                   }`}>
-                    ৳{r.avgDelta}
+                    {formatDelta(r.avgDelta)}
                   </span>
                 </span>
               </div>
@@ -92,7 +94,7 @@ export function Intelligence() {
             {(cover.data?.rows ?? []).map((r) => (
               <div key={r.repId} className="flex items-center gap-4">
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium truncate">{r.repId}</p>
+                  <p className="text-sm font-medium truncate">{dir.rep(r.repId)}</p>
                   <p className="text-xs text-ink-muted tabular-nums">
                     {r.clipCount} clips · {r.outletCount} outlets · {r.flagged} flagged
                   </p>

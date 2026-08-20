@@ -5,6 +5,7 @@ import { api } from "@/shared/lib/api";
 import { useAuth } from "@/shared/lib/auth-store";
 import { ConfidenceRing, StatusPill } from "@/shared/ui/Confidence";
 import { connectRealtime, onObservations, disconnectRealtime } from "./lib/socket";
+import { useDirectory, formatDelta } from "./lib/directory";
 
 interface Summary {
   observations: number; clipCount: number; activeReps: number;
@@ -84,6 +85,7 @@ function Kpi({ label, value, tone }: { label: string; value: number; tone?: "unc
 }
 
 export function ObservationCard({ o }: { o: Observation }) {
+  const dir = useDirectory();
   const flagged = o.flaggedFields.length > 0;
   const meanConf =
     Object.values(o.fieldConfidence).reduce((a, b) => a + b, 0) /
@@ -110,11 +112,11 @@ export function ObservationCard({ o }: { o: Observation }) {
         </p>
 
         <div className="flex flex-wrap gap-x-6 gap-y-1 text-sm">
-          {o.outletId && <Field label="Outlet" value={o.outletId} flagged={o.flaggedFields.includes("outletId")} />}
-          {o.skuId && <Field label="Product" value={o.skuId} flagged={o.flaggedFields.includes("skuId")} />}
-          {o.competitorBrand && <Field label="Competitor" value={o.competitorBrand} flagged={o.flaggedFields.includes("competitorBrand")} />}
+          {o.outletId && <Field label="Outlet" value={dir.outlet(o.outletId)} flagged={o.flaggedFields.includes("outletId")} />}
+          {o.skuId && <Field label="Product" value={dir.sku(o.skuId)} flagged={o.flaggedFields.includes("skuId")} />}
+          {o.competitorBrand && <Field label="Competitor" value={dir.sku(o.competitorBrand)} flagged={o.flaggedFields.includes("competitorBrand")} />}
           {o.quantity !== null && <Field label="Qty" value={`${o.quantity}${o.unit ? ` ${o.unit}` : ""}`} flagged={o.flaggedFields.includes("quantity")} />}
-          {o.priceDelta !== null && <Field label="Price" value={`৳${o.priceDelta}`} flagged={false} />}
+          {o.priceDelta !== null && <Field label="Price" value={formatDelta(o.priceDelta)} flagged={false} />}
         </div>
       </div>
 

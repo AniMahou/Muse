@@ -3,6 +3,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import type { Observation } from "@shared/observation.schema";
 import { api } from "@/shared/lib/api";
 import { ConfidenceBar, ConfidenceRing } from "@/shared/ui/Confidence";
+import { useDirectory, formatDelta } from "./lib/directory";
 
 /**
  * HQ review of flagged records.
@@ -13,16 +14,26 @@ import { ConfidenceBar, ConfidenceRing } from "@/shared/ui/Confidence";
  */
 export function Review() {
   const qc = useQueryClient();
+  const dir = useDirectory();
   const [selected, setSelected] = useState<string | null>(null);
+  const [editing, setEditing] = useState(false);
+  const [draft, setDraft] = useState<Record<string, string>>({});
 
   const { data, isLoading } = useQuery({
     queryKey: ["review"],
     queryFn: () => api.get<{ observations: Observation[] }>("/admin/review?limit=50"),
   });
 
-  const confirm = useMutation({
-    mutationFn: (id: string) => api.post(`/admin/observations/${id}/correct`, { patch: {} }),
-    onSuccess: () => void qc.invalidateQueries({ queryKey: ["review"] }),
+  const save = useMutation({
+    mutationFn: (v: { id: string; patch: Record<string, unknown> }) =>
+      api.post(`/admin/observations/${v.id}/correct`, { patch: v.patch }),
+    onSuccess: () => {
+      setEditing(false);
+      setDraft({});
+      setSelected(null);
+      void qc.invalidateQueries({ queryKey: ["review"] });
+      void qc.invalidateQueries({ queryKey: ["observations"] });
+    },
   });
 
   const rows = data?.observations ?? [];
@@ -95,7 +106,7 @@ export function Review() {
                       <div className="flex items-center justify-between gap-4 mb-1.5">
                         <span className="text-sm text-ink-muted">{labelFor(f)}</span>
                         <span className={`text-sm font-medium ${flagged ? "text-uncertain" : ""}`}>
-                          {String(current[f])}
+                          {display(f, current, dir)}
                           {flagged && <span className="ml-2 text-xs">unconfirmed</span>}
                         </span>
                       </div>
@@ -105,19 +116,67 @@ export function Review() {
                 })}
             </div>
 
+            {editing && (
+              <div className="mb-6 space-y-4 rounded-xl border border-accent/30 bg-accent/5 p-5">
+                <p className="text-sm text-ink-soft">
+                  Pick the right value for anything the system got wrong. Corrected
+                  fields are marked fully confident and any outstanding question to
+                  the rep is withdrawn.
+                </p>
+                <div>
+                  <label className="label">Product</label>
+                  <select className="field"
+                          value={draft.skuId ?? current.skuId ?? ""}
+                          onChange={(e) => setDraft((d) => ({ ...d, skuId: e.target.value }))}>
+                    <option value="">— none —</option>
+                    {dir.skus.map((s) => (
+                      <option key={s.skuId} value={s.skuId}>
+                        {s.name}{s.pack ? ` ${s.pack}` : ""}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="label">Quantity</label>
+                  <input className="field" type="number"
+                         value={draft.quantity ?? String(current.quantity ?? "")}
+                         onChange={(e) => setDraft((d) => ({ ...d, quantity: e.target.value }))} />
+                </div>
+              </div>
+            )}
+
             <div className="flex flex-wrap gap-3">
-              <button className="btn-primary"
-                      disabled={confirm.isPending}
-                      onClick={() => confirm.mutate(current.observationId)}>
-                Confirm as correct
+              <button className="btn-primary" disabled={save.isPending}
+                      onClick={() => save.mutate({
+                        id: current.observationId,
+                        patch: editing ? buildPatch(draft) : {},
+                      })}>
+                {editing ? "Save correction" : "Confirm as correct"}
               </button>
-              <button className="btn-ghost" disabled>Correct…</button>
+              <button className="btn-ghost" onClick={() => { setEditing((v) => !v); setDraft({}); }}>
+                {editing ? "Cancel" : "Correct…"}
+              </button>
             </div>
           </div>
         )}
       </div>
     </div>
   );
+}
+
+/** Only send fields the reviewer actually touched. */
+function buildPatch(draft: Record<string, string>): Record<string, unknown> {
+  const patch: Record<string, unknown> = {};
+  if (draft.skuId !== undefined) patch.skuId = draft.skuId === "" ? null : draft.skuId;
+  if (draft.quantity !== undefined && draft.quantity !== "") patch.quantity = Number(draft.quantity);
+  return patch;
+}
+
+function display(f: string, o: Observation, dir: ReturnType<typeof useDirectory>): string {
+  if (f === "skuId" || f === "competitorBrand") return dir.sku(o[f] as string | null);
+  if (f === "outletId") return dir.outlet(o.outletId);
+  if (f === "priceDelta") return formatDelta(o.priceDelta ?? 0);
+  return String(o[f as keyof Observation]);
 }
 
 const labelFor = (f: string) =>

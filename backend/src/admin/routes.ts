@@ -154,6 +154,17 @@ export function adminRoutes(d: AdminDeps): Router {
   r.post("/catalog/outlets", importer("outlets"));
   r.post("/catalog/reps", importer("reps"));
 
+  // The console resolves ids to names everywhere it shows data, so it needs
+  // the outlet list as well as the SKU list. A brand manager should never be
+  // asked to read "OUT-1182".
+  r.get("/catalog/outlets", wrap(async (req, res) => {
+    const rows = await d.collections.outlets
+      .find({ companyId: company(req) })
+      .limit(Number(req.query.limit ?? 1000))
+      .toArray();
+    res.json({ outlets: rows.map(({ location: _l, ...o }) => o) });
+  }));
+
   r.get("/catalog/skus", wrap(async (req, res) => {
     const rows = await d.collections.skus
       .find({ companyId: company(req) })

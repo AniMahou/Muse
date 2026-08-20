@@ -5,6 +5,8 @@ import { WaveRing, WaveThumb } from "./Waveform";
 
 const BUTTON = 236;
 const MIN_DURATION_MS = 900;
+/** Release inside this window means "tap", so recording stays on until tapped again. */
+const TAP_THRESHOLD_MS = 400;
 
 const STATUS_BN: Record<QueuedClip["status"], string> = {
   pending: "অপেক্ষমাণ",
@@ -22,6 +24,9 @@ const STATUS_BN: Record<QueuedClip["status"], string> = {
  */
 export function Record() {
   const [recording, setRecording] = useState(false);
+  /** True when a short tap started the recording, so a second tap stops it. */
+  const [locked, setLocked] = useState(false);
+  const [notice, setNotice] = useState<string | null>(null);
   const [levels, setLevels] = useState<number[]>(Array(48).fill(0));
   const [elapsed, setElapsed] = useState(0);
   const [clips, setClips] = useState<QueuedClip[]>([]);
@@ -64,13 +69,24 @@ export function Record() {
   async function begin() {
     if (recording) return;
     setError(null);
+    setNotice(null);
     try {
       handle.current = await startRecording();
       startedAt.current = Date.now();
       setRecording(true);
       raf.current = requestAnimationFrame(tick);
-    } catch {
-      setError("মাইক্রোফোন ব্যবহারের অনুমতি দিন");
+    } catch (err) {
+      // Distinguish the failure modes. "Permission denied" and "no microphone
+      // found" need completely different actions from the user, and a single
+      // generic message leaves them with nothing to try.
+      const name = err instanceof Error ? err.name : "";
+      setError(
+        name === "NotAllowedError"
+          ? "মাইক্রোফোনের অনুমতি দেওয়া হয়নি — ব্রাউজারের ঠিকানা বারে অনুমতি দিন"
+          : name === "NotFoundError"
+            ? "কোনো মাইক্রোফোন পাওয়া যায়নি"
+            : "রেকর্ড শুরু করা গেল না",
+      );
     }
   }
 
@@ -78,16 +94,21 @@ export function Record() {
     if (!recording || !handle.current) return;
     cancelAnimationFrame(raf.current);
     setRecording(false);
+    setLocked(false);
     setLevels(Array(48).fill(0));
 
     const duration = Date.now() - startedAt.current;
     const rec = handle.current;
     handle.current = null;
 
-    // Too short to contain anything. Discard rather than upload noise.
+    // Too short to contain anything. Discard rather than upload noise — but
+    // SAY SO. Silently dropping the clip is indistinguishable from a broken
+    // button, which is exactly how this failed before.
     if (duration < MIN_DURATION_MS) {
       rec.cancel();
       setElapsed(0);
+      setNotice("খুব ছোট — একটু ধরে রাখুন");
+      setTimeout(() => setNotice(null), 2500);
       return;
     }
 
@@ -140,14 +161,33 @@ export function Record() {
           <WaveRing levels={levels} size={BUTTON} active={recording} />
 
           <button
-            onPointerDown={(e) => { e.preventDefault(); void begin(); }}
-            onPointerUp={() => void finish()}
-            onPointerLeave={() => void finish()}
+            onPointerDown={(e) => {
+              e.preventDefault();
+              // Pointer capture keeps every subsequent event on THIS element
+              // even once the finger or cursor drifts off it. Without it the
+              // press-scale animation moves the button's edge under the
+              // cursor, fires pointerleave, and ends the recording instantly.
+              e.currentTarget.setPointerCapture(e.pointerId);
+              if (locked) { void finish(); return; }
+              void begin();
+            }}
+            onPointerUp={(e) => {
+              e.currentTarget.releasePointerCapture?.(e.pointerId);
+              if (locked) return;
+              // A quick tap LOCKS recording so a second tap stops it; holding
+              // longer behaves as push-to-talk. Hold-only is unusable with a
+              // mouse and awkward one-handed on a phone.
+              if (Date.now() - startedAt.current < TAP_THRESHOLD_MS) {
+                setLocked(true);
+                return;
+              }
+              void finish();
+            }}
             onContextMenu={(e) => e.preventDefault()}
-            aria-label="ধরে বলুন"
+            aria-label={recording ? "রেকর্ড বন্ধ করুন" : "ধরে বলুন"}
             className={`relative rounded-full grid place-items-center select-none touch-none
                         text-white transition-transform duration-150
-                        ${recording ? "scale-95" : "active:scale-95"}`}
+                        ${recording ? "scale-[0.97]" : "active:scale-[0.97]"}`}
             style={{
               width: BUTTON * 0.72,
               height: BUTTON * 0.72,
@@ -168,8 +208,12 @@ export function Record() {
           </button>
         </div>
 
-        <p className="mt-6 text-center text-sm text-ink-muted bn max-w-[16rem]">
-          {recording ? "ছেড়ে দিলে পাঠানো হবে" : "দোকানের নাম, পণ্য আর পরিমাণ বলুন"}
+        <p className="mt-6 text-center text-sm text-ink-muted bn max-w-[17rem] min-h-[2.5rem]">
+          {notice
+            ? <span className="text-uncertain">{notice}</span>
+            : recording
+              ? locked ? "থামাতে আবার চাপুন" : "ছেড়ে দিলে পাঠানো হবে"
+              : "চেপে ধরে বলুন, বা একবার চাপুন"}
         </p>
       </div>
 
