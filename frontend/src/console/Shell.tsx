@@ -1,4 +1,4 @@
-import { NavLink, Outlet } from "react-router-dom";
+import { Link, NavLink, Outlet } from "react-router-dom";
 import { useAuth } from "@/shared/lib/auth-store";
 import { ThemeToggle } from "@/shared/ui/ThemeToggle";
 import { Logo } from "@/shared/ui/Logo";
@@ -17,35 +17,54 @@ export function Shell() {
 
   return (
     <div className="min-h-dvh flex">
-      <aside className="hidden md:flex w-[68px] shrink-0 flex-col items-center gap-1 py-5
+      {/* Labelled, not icon-only. Six abstract glyphs with tooltips means the
+          user has to hover each one to learn the app — 130px of width is a
+          cheap price for never having to. */}
+      <aside className="hidden md:flex w-[200px] shrink-0 flex-col gap-1 p-4
                         border-r border-line/40 bg-raised/30">
-        <div className="mb-5"><Logo size={30} withText={false} /></div>
+        <div className="mb-5 px-2"><Logo size={28} /></div>
+
         {NAV.map((n) => (
-          <NavLink key={n.to} to={n.to} end={n.end} title={n.label}
+          <NavLink key={n.to} to={n.to} end={n.end}
             className={({ isActive }) =>
-              `relative h-11 w-11 rounded-xl grid place-items-center transition-colors ${
-                isActive ? "text-accent bg-accent/12" : "text-ink-muted hover:text-ink"
+              `relative flex items-center gap-3 h-10 rounded-xl px-3 text-sm transition-colors ${
+                isActive ? "text-accent bg-accent/12 font-medium" : "text-ink-soft hover:text-ink hover:bg-raised/60"
               }`
             }>
-            {({ isActive }) => (
-              <>
-                {isActive && <span className="absolute -left-[14px] h-6 w-[3px] rounded-full bg-accent" />}
-                <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor"
-                     strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
-                  <path d={n.icon} />
-                </svg>
-              </>
-            )}
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor"
+                 strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" className="shrink-0">
+              <path d={n.icon} />
+            </svg>
+            {n.label}
           </NavLink>
         ))}
-        <div className="mt-auto flex flex-col items-center gap-2">
-          <ThemeToggle />
-          <button onClick={logout} title="Sign out"
-                  className="h-11 w-11 rounded-xl grid place-items-center text-ink-muted hover:text-ink">
+
+        {/* The core interaction lives in the other app. Without this link an
+            owner has no way to reach the recorder at all. */}
+        {user?.repId && (
+          <Link to="/app"
+                className="mt-3 flex items-center gap-3 h-11 rounded-xl px-3 text-sm font-medium
+                           text-white shadow-glow transition-transform active:scale-[0.98]"
+                style={{ background: "linear-gradient(135deg, rgb(var(--accent)), rgb(var(--accent-2)))" }}>
             <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor"
+                 strokeWidth="1.8" strokeLinecap="round" className="shrink-0">
+              <rect x="9" y="2.5" width="6" height="12" rx="3" />
+              <path d="M5 11a7 7 0 0 0 14 0M12 18v3.5" />
+            </svg>
+            Record a clip
+          </Link>
+        )}
+
+        <div className="mt-auto flex items-center gap-2">
+          <ThemeToggle />
+          <button onClick={logout}
+                  className="flex-1 flex items-center gap-2 h-10 rounded-xl px-3 text-sm
+                             text-ink-muted hover:text-ink hover:bg-raised/60 transition-colors">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor"
                  strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
               <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9" />
             </svg>
+            Sign out
           </button>
         </div>
       </aside>

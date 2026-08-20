@@ -57,12 +57,19 @@ export function requireRole(...roles: Role[]) {
   };
 }
 
-/** A field rep must have a linked Rep record before they can record anything. */
+/**
+ * Recording requires a linked Rep record — not a particular role label.
+ *
+ * Owners and admins get one at sign-up so they can record too. Gating on the
+ * role instead would mean whoever signed up cannot try the core interaction
+ * without creating a second account, which is a poor first five minutes and
+ * wrong anyway: in a small distributor the owner is out in the field.
+ */
 export function requireRep() {
   return function (req: Request, _res: Response, next: NextFunction): void {
     if (!req.auth) return next(new AppError("unauthenticated", 401, "unauthenticated"));
-    if (req.auth.role !== "rep" || !req.auth.repId) {
-      return next(new AppError("this endpoint is for field representatives", 403, "forbidden"));
+    if (!req.auth.repId) {
+      return next(new AppError("this account has no field record", 403, "forbidden"));
     }
     next();
   };

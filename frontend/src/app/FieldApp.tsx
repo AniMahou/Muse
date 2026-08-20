@@ -1,4 +1,4 @@
-import { NavLink, Navigate, Route, Routes } from "react-router-dom";
+import { Link, NavLink, Navigate, Route, Routes } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { api } from "@/shared/lib/api";
 import { useAuth } from "@/shared/lib/auth-store";
@@ -14,7 +14,8 @@ import { MyDay } from "./MyDay";
  * using it.
  */
 export function FieldApp() {
-  const logout = useAuth((s) => s.logout);
+  const { user, logout } = useAuth();
+  const canReturnToConsole = user?.role !== "rep";
 
   const { data } = useQuery({
     queryKey: ["clarifications"],
@@ -24,11 +25,22 @@ export function FieldApp() {
   const pending = data?.clarifications.length ?? 0;
 
   return (
-    <div className="min-h-dvh mx-auto max-w-md pb-24">
+    // Mobile-first, but people WILL open this on a laptop to try it. On a wide
+    // screen the column gets a border and its own surface so it reads as "the
+    // phone app", rather than looking like a layout that broke.
+    <div className="min-h-dvh mx-auto max-w-md pb-24 relative
+                    lg:my-6 lg:min-h-[calc(100dvh-3rem)] lg:rounded-3xl lg:border
+                    lg:border-line/50 lg:bg-raised/20 lg:shadow-float lg:overflow-hidden">
       <header className="sticky top-0 z-40 flex items-center justify-between px-5 py-3
-                         bg-base/80 backdrop-blur-glass border-b border-line/40">
+                         bg-base/80 backdrop-blur-glass border-b border-line/40 lg:rounded-t-3xl">
         <Logo size={26} withText={false} />
         <div className="flex items-center gap-2">
+          {canReturnToConsole && (
+            <Link to="/console"
+                  className="glass h-10 rounded-xl px-3 grid place-items-center text-xs text-ink-soft">
+              Console
+            </Link>
+          )}
           <ThemeToggle />
           <button onClick={logout}
                   className="glass h-10 w-10 rounded-xl grid place-items-center text-ink-soft"
@@ -48,7 +60,7 @@ export function FieldApp() {
         <Route path="*" element={<Navigate to="/app" replace />} />
       </Routes>
 
-      <nav className="fixed bottom-0 inset-x-0 z-40 mx-auto max-w-md">
+      <nav className="fixed bottom-0 inset-x-0 z-40 mx-auto max-w-md lg:absolute lg:inset-x-0">
         <div className="relative mx-4 mb-4 glass flex items-center justify-around py-2.5">
           <Tab to="/app/day" label="আমার দিন">
             <path d="M8 2v4M16 2v4M3 10h18M5 4h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z" />

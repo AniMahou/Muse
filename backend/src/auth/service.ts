@@ -48,8 +48,15 @@ export class AuthService {
     };
     await this.c.users.insertOne(user);
 
+    // Owners get a Rep record too, so they can record from day one.
+    // Whoever signs up is evaluating the product, and making them invite a
+    // second account before they can try the core interaction is a bad first
+    // five minutes. In a small distributor the owner is genuinely in the field
+    // as well.
+    const withRep = await this.ensureRepRecord(user);
+
     logger.info({ companyId, email }, "company registered");
-    return this.session(user, req.companyName.trim());
+    return this.session(withRep, req.companyName.trim());
   }
 
   async login(req: LoginRequest): Promise<AuthResponse> {
@@ -66,8 +73,12 @@ export class AuthService {
     const now = new Date().toISOString();
     await this.c.users.updateOne({ userId: user.userId }, { $set: { lastLoginAt: now } });
 
+    // Backfills accounts created before owners had Rep records. Doing it on
+    // login means existing users pick it up without a migration.
+    const withRep = await this.ensureRepRecord({ ...user, lastLoginAt: now });
+
     const company = await this.c.companies.findOne({ companyId: user.companyId });
-    return this.session({ ...user, lastLoginAt: now }, company?.name ?? "");
+    return this.session(withRep, company?.name ?? "");
   }
 
   /**
@@ -138,6 +149,29 @@ export class AuthService {
       user: toPublic(user),
       company: { companyId: user.companyId, name: company?.name ?? "" },
     };
+  }
+
+  /**
+   * Give a user a Rep record if they lack one.
+   *
+   * The recording endpoint needs a repId to attach a clip to, and to scope the
+   * product candidate set. An admin's portfolio is left empty, which means the
+   * full catalogue — correct, since they are not assigned a territory.
+   */
+  private async ensureRepRecord(user: User): Promise<User> {
+    if (user.repId) return user;
+
+    const repId = `rep_${randomUUID().slice(0, 8)}`;
+    await this.c.reps.insertOne({
+      repId,
+      companyId: user.companyId,
+      name: user.name,
+      brandPortfolio: [],
+      active: true,
+    });
+    await this.c.users.updateOne({ userId: user.userId }, { $set: { repId } });
+
+    return { ...user, repId };
   }
 
   private session(user: User, companyName: string): AuthResponse {

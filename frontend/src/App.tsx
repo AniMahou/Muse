@@ -29,12 +29,13 @@ export function App() {
       <Route path="/login" element={user ? <Navigate to={homeFor(user.role)} replace /> : <Login />} />
       <Route path="/register" element={user ? <Navigate to={homeFor(user.role)} replace /> : <Register />} />
 
-      {/* Role decides the application, not the URL. A rep who types /console
-          is sent to the field app rather than shown an empty shell. */}
+      {/* The field app needs a Rep record, not a particular role — owners and
+          admins get one at sign-up so they can record as well as review. A rep
+          who types /console is still sent back, since they have no console. */}
       <Route
         path="/app/*"
         element={!user ? <Navigate to="/login" replace />
-          : user.role !== "rep" ? <Navigate to="/console" replace />
+          : !user.repId ? <Navigate to="/console" replace />
           : <FieldApp />}
       />
       <Route
