@@ -1,0 +1,85 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="720" height="520" viewBox="0 0 720 520">
+<defs>
+  <filter id="grain"><feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="3"/>
+    <feColorMatrix type="saturate" values="0"/>
+    <feComponentTransfer><feFuncA type="linear" slope="0.055"/></feComponentTransfer></filter>
+  <linearGradient id="pg" x1="0" y1="0" x2="1" y2="1">
+    <stop offset="0" stop-color="#fdfaf1"/><stop offset="0.5" stop-color="#f6f0e0"/>
+    <stop offset="1" stop-color="#efe7d4"/></linearGradient>
+  <filter id="sh"><feDropShadow dx="0" dy="6" stdDeviation="10" flood-opacity="0.28"/></filter>
+</defs>
+<rect width="720" height="520" fill="#2a2620"/>
+<g filter="url(#sh)"><rect x="26" y="22" width="668" height="476" rx="4" fill="url(#pg)" transform="rotate(-0.6 360 260)"/></g>
+<line x1="60" y1="150" x2="660" y2="150" stroke="#c9bfa6" stroke-width="1" opacity="0.55"/>
+<line x1="60" y1="212" x2="660" y2="212" stroke="#c9bfa6" stroke-width="1" opacity="0.55"/>
+<line x1="60" y1="274" x2="660" y2="274" stroke="#c9bfa6" stroke-width="1" opacity="0.55"/>
+<line x1="60" y1="336" x2="660" y2="336" stroke="#c9bfa6" stroke-width="1" opacity="0.55"/>
+<line x1="60" y1="398" x2="660" y2="398" stroke="#c9bfa6" stroke-width="1" opacity="0.55"/>
+<line x1="60" y1="460" x2="660" y2="460" stroke="#c9bfa6" stroke-width="1" opacity="0.55"/>
+<line x1="96" y1="46" x2="96" y2="474" stroke="#d8a9a0" stroke-width="1.4" opacity="0.6"/>
+<g fill="#1f3b6e" font-family="Hind Siliguri, Noto Sans Bengali, sans-serif" font-size="34" font-weight="500">
+<text x="118.0" y="128.9" transform="rotate(0.60 118.0 128.9)" opacity="0.98">ন</text>
+<text x="139.1" y="129.5" transform="rotate(-1.09 139.1 129.5)" opacity="0.98">ি</text>
+<text x="160.2" y="129.5" transform="rotate(-0.33 160.2 129.5)" opacity="0.86">উ</text>
+<text x="181.2" y="128.3" transform="rotate(2.89 181.2 128.3)" opacity="0.89"> </text>
+<text x="191.4" y="130.1" transform="rotate(2.51 191.4 130.1)" opacity="0.94">আ</text>
+<text x="212.5" y="129.6" transform="rotate(-2.52 212.5 129.6)" opacity="1.00">ল</text>
+<text x="233.6" y="129.5" transform="rotate(0.27 233.6 129.5)" opacity="0.99">ম</text>
+<text x="254.7" y="127.3" transform="rotate(2.37 254.7 127.3)" opacity="0.91"> </text>
+<text x="264.9" y="126.4" transform="rotate(0.87 264.9 126.4)" opacity="0.96">এ</text>
+<text x="286.0" y="130.1" transform="rotate(0.80 286.0 130.1)" opacity="0.83">ন</text>
+<text x="307.0" y="128.0" transform="rotate(0.64 307.0 128.0)" opacity="0.89">্</text>
+<text x="328.1" y="128.9" transform="rotate(-1.15 328.1 128.9)" opacity="0.82">ট</text>
+<text x="349.2" y="125.8" transform="rotate(-0.40 349.2 125.8)" opacity="0.99">া</text>
+<text x="370.3" y="126.2" transform="rotate(0.50 370.3 126.2)" opacity="0.99">র</text>
+<text x="391.4" y="130.0" transform="rotate(0.99 391.4 130.0)" opacity="0.98">প</text>
+<text x="412.4" y="128.7" transform="rotate(-1.68 412.4 128.7)" opacity="0.98">্</text>
+<text x="433.5" y="129.4" transform="rotate(2.39 433.5 129.4)" opacity="0.85">র</text>
+<text x="454.6" y="129.9" transform="rotate(-1.42 454.6 129.9)" opacity="0.85">া</text>
+<text x="475.7" y="129.5" transform="rotate(-1.25 475.7 129.5)" opacity="0.90">ই</text>
+<text x="496.8" y="127.8" transform="rotate(-2.00 496.8 127.8)" opacity="0.87">জ</text>
+</g>
+<line x1="112" y1="140" x2="518" y2="142" stroke="#1f3b6e" stroke-width="2" opacity="0.5"/>
+<g fill="#1f3b6e" font-family="Hind Siliguri, Noto Sans Bengali, sans-serif" font-size="28" font-weight="400">
+<text x="118.0" y="191.9" transform="rotate(-0.01 118.0 191.9)" opacity="0.90">স</text>
+<text x="135.4" y="190.1" transform="rotate(3.04 135.4 190.1)" opacity="0.84">া</text>
+<text x="152.7" y="189.0" transform="rotate(-1.73 152.7 189.0)" opacity="0.82">র</text>
+<text x="170.1" y="190.4" transform="rotate(2.58 170.1 190.4)" opacity="0.89">্</text>
+<text x="187.4" y="188.1" transform="rotate(-0.36 187.4 188.1)" opacity="0.91">ফ</text>
+<text x="204.8" y="190.1" transform="rotate(-0.16 204.8 190.1)" opacity="0.92"> </text>
+<text x="213.2" y="190.3" transform="rotate(-3.11 213.2 190.3)" opacity="0.87">এ</text>
+<text x="230.6" y="191.7" transform="rotate(1.98 230.6 191.7)" opacity="0.88">ক</text>
+<text x="247.9" y="189.4" transform="rotate(2.53 247.9 189.4)" opacity="0.85">্</text>
+<text x="265.3" y="190.7" transform="rotate(-1.01 265.3 190.7)" opacity="0.85">স</text>
+<text x="282.6" y="191.0" transform="rotate(2.13 282.6 191.0)" opacity="0.89">ে</text>
+<text x="300.0" y="192.0" transform="rotate(-1.16 300.0 192.0)" opacity="0.88">ল</text>
+<text x="317.4" y="189.0" transform="rotate(0.59 317.4 189.0)" opacity="0.92"> </text>
+<text x="325.8" y="188.2" transform="rotate(1.86 325.8 188.2)" opacity="0.95">—</text>
+<text x="343.1" y="190.5" transform="rotate(0.96 343.1 190.5)" opacity="0.89"> </text>
+<text x="351.5" y="188.9" transform="rotate(-2.67 351.5 188.9)" opacity="0.95">৩</text>
+<text x="368.9" y="188.6" transform="rotate(-0.72 368.9 188.6)" opacity="0.92"> </text>
+<text x="377.3" y="190.4" transform="rotate(-2.90 377.3 190.4)" opacity="0.99">ক</text>
+<text x="394.6" y="188.0" transform="rotate(-1.32 394.6 188.0)" opacity="0.92">া</text>
+<text x="412.0" y="190.0" transform="rotate(0.82 412.0 190.0)" opacity="0.85">র</text>
+<text x="429.4" y="190.5" transform="rotate(3.02 429.4 190.5)" opacity="0.89">্</text>
+<text x="446.7" y="191.1" transform="rotate(2.64 446.7 191.1)" opacity="0.97">ট</text>
+<text x="464.1" y="190.7" transform="rotate(2.84 464.1 190.7)" opacity="0.94">ন</text>
+</g>
+<g fill="#1f3b6e" font-family="Hind Siliguri, Noto Sans Bengali, sans-serif" font-size="28" font-weight="400">
+<text x="118.0" y="253.1" transform="rotate(-1.56 118.0 253.1)" opacity="0.94">র</text>
+<text x="135.4" y="252.0" transform="rotate(-0.15 135.4 252.0)" opacity="0.84">ি</text>
+<text x="152.7" y="250.5" transform="rotate(2.07 152.7 250.5)" opacity="0.90">ন</text>
+<text x="170.1" y="250.0" transform="rotate(1.19 170.1 250.0)" opacity="0.90"> </text>
+<text x="178.5" y="251.7" transform="rotate(3.08 178.5 251.7)" opacity="0.93">প</text>
+<text x="195.8" y="252.2" transform="rotate(1.76 195.8 252.2)" opacity="0.94">া</text>
+<text x="213.2" y="250.3" transform="rotate(0.63 213.2 250.3)" opacity="0.93">উ</text>
+<text x="230.6" y="253.9" transform="rotate(2.33 230.6 253.9)" opacity="0.97">ড</text>
+<text x="247.9" y="254.0" transform="rotate(-1.21 247.9 254.0)" opacity="0.97">া</text>
+<text x="265.3" y="252.6" transform="rotate(-1.94 265.3 252.6)" opacity="0.95">র</text>
+<text x="282.6" y="251.6" transform="rotate(1.93 282.6 251.6)" opacity="0.96"> </text>
+<text x="291.0" y="252.0" transform="rotate(-1.78 291.0 252.0)" opacity="0.96">শ</text>
+<text x="308.4" y="251.0" transform="rotate(0.67 308.4 251.0)" opacity="0.92">ে</text>
+<text x="325.8" y="251.4" transform="rotate(-1.29 325.8 251.4)" opacity="0.97">ষ</text>
+</g>
+<rect width="720" height="520" filter="url(#grain)" opacity="0.5"/>
+</svg>

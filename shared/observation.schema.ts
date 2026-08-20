@@ -86,8 +86,35 @@ export const ClipStatusSchema = z.enum([
 ]);
 export type ClipStatus = z.infer<typeof ClipStatusSchema>;
 
+/**
+ * How a clip entered the system.
+ *
+ * Both sources converge on the SAME pipeline after extraction — identical
+ * quantity grammar, resolvers, assembly and confidence gating. Only the step
+ * that turns a medium into text differs, which is the whole point of the
+ * stage boundary.
+ */
+export const ClipSourceSchema = z.enum(["voice", "photo"]);
+export type ClipSource = z.infer<typeof ClipSourceSchema>;
+
+/** Provider and timing metadata, kept so the console can report what actually ran. */
+export const PipelineMetaSchema = z.object({
+  extractor: z.string(),
+  extractorModel: z.string(),
+  llmProvider: z.string(),
+  llmModel: z.string(),
+  timings: z.record(z.string(), z.number()).default({}),
+  /** Mean extraction confidence, whether from ASR or OCR. */
+  extractionConfidence: z.number().min(0).max(1).nullable().default(null),
+  /** True when the extraction step was simulated rather than a real model. */
+  simulated: z.boolean().default(false),
+});
+export type PipelineMeta = z.infer<typeof PipelineMetaSchema>;
+
 export const ClipSchema = z.object({
   clipId: z.string().min(1),
+  source: ClipSourceSchema.default("voice"),
+  pipeline: PipelineMetaSchema.nullable().default(null),
   companyId: z.string().min(1),
   repId: z.string().min(1),
   /** Client-generated UUID. The idempotency key for at-least-once delivery. */

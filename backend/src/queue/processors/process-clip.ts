@@ -35,6 +35,7 @@ export function makeProcessClip(container: Container) {
       );
 
       const result = await orchestrator.run({
+        source: clip.source,
         clipId: clip.clipId,
         companyId: clip.companyId,
         repId: clip.repId,
@@ -47,11 +48,27 @@ export function makeProcessClip(container: Container) {
 
       const saved = await container.repo.replaceForClip(clip, result.observations);
 
+      const meanConf =
+        result.transcript.words.length > 0
+          ? result.transcript.words.reduce((a, w) => a + w.conf, 0) / result.transcript.words.length
+          : null;
+
       await container.repo.setClipStatus(clipId, "processed", {
         transcriptText: result.transcript.text,
         durationSec: result.transcript.durationSec,
         observationCount: saved.length,
         error: null,
+        // Kept so the console can report what actually ran rather than what
+        // the config says should run — those drift.
+        pipeline: {
+          extractor: result.transcript.provider,
+          extractorModel: result.transcript.model,
+          llmProvider: container.llm.name,
+          llmModel: container.llm.model,
+          timings: result.timings,
+          extractionConfidence: meanConf,
+          simulated: clip.source === "photo" && container.ocr.simulated,
+        },
       });
 
       // Turn flagged fields into one-tap questions, and harvest surface forms

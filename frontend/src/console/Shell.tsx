@@ -16,11 +16,16 @@ export function Shell() {
   const { user, company, logout } = useAuth();
 
   return (
-    <div className="min-h-dvh flex">
+    // Fixed-height app shell: the root is pinned to the viewport and clips,
+    // so <main> is the ONE scroll container. Previously the root grew with its
+    // content while main also declared overflow-y:auto — main sized itself to
+    // fit and never scrolled, the body could not scroll either, and everything
+    // below the fold was simply unreachable.
+    <div className="h-dvh flex overflow-hidden">
       {/* Labelled, not icon-only. Six abstract glyphs with tooltips means the
           user has to hover each one to learn the app — 130px of width is a
           cheap price for never having to. */}
-      <aside className="hidden md:flex w-[200px] shrink-0 flex-col gap-1 p-4
+      <aside className="hidden md:flex w-[200px] shrink-0 flex-col gap-1 p-4 overflow-y-auto
                         border-r border-line/40 bg-raised/30">
         <div className="mb-5 px-2"><Logo size={28} /></div>
 
@@ -69,8 +74,8 @@ export function Shell() {
         </div>
       </aside>
 
-      <div className="flex-1 min-w-0 flex flex-col">
-        <header className="flex items-center justify-between gap-4 px-6 py-4 border-b border-line/40">
+      <div className="flex-1 min-w-0 flex flex-col overflow-hidden">
+        <header className="shrink-0 flex items-center justify-between gap-4 px-6 py-4 border-b border-line/40">
           <div className="min-w-0">
             <p className="font-display font-semibold truncate">{company?.name ?? "Muse"}</p>
             <p className="text-xs text-ink-muted truncate">{user?.email}</p>
@@ -90,7 +95,7 @@ export function Shell() {
           <div className="md:hidden"><ThemeToggle /></div>
         </header>
 
-        <main className="flex-1 p-6 overflow-x-hidden"><Outlet /></main>
+        <main className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden p-6"><Outlet /></main>
       </div>
     </div>
   );

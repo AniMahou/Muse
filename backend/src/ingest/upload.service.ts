@@ -22,6 +22,8 @@ export const UploadRequestSchema = z.object({
   clientUuid: z.string().min(8).max(128),
   audioBase64: z.string().min(1),
   mimeType: z.string().default("audio/webm"),
+  /** Voice note or photographed note. Decides which extractor runs. */
+  source: z.enum(["voice", "photo"]).default("voice"),
   /** Captured at record time. Cannot be recovered later — the rep has moved. */
   geo: z.object({ lat: z.number(), lng: z.number() }).nullable().default(null),
   /** Set when the rep confirmed the outlet in the app. */
@@ -74,6 +76,7 @@ export class UploadService {
     const clip = await this.repo.createClip({
       companyId,
       repId,
+      source: req.source,
       clientUuid: req.clientUuid,
       storageKey,
       mimeType: req.mimeType,
@@ -114,6 +117,10 @@ function extensionFor(mimeType: string): string {
     "audio/wav": "wav",
     "audio/x-wav": "wav",
     "audio/flac": "flac",
+    "image/jpeg": "jpg",
+    "image/png": "png",
+    "image/webp": "webp",
+    "image/heic": "heic",
   };
   return map[mimeType.split(";")[0]!.trim().toLowerCase()] ?? "bin";
 }

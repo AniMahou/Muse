@@ -7,6 +7,7 @@ import { Logo } from "@/shared/ui/Logo";
 import { Record } from "./Record";
 import { Clarify } from "./Clarify";
 import { MyDay } from "./MyDay";
+import { Photo } from "./Photo";
 
 /**
  * Mobile-first shell. Three destinations and no more — every extra screen in a
@@ -56,14 +57,16 @@ export function FieldApp() {
       <Routes>
         <Route index element={<Record />} />
         <Route path="clarify" element={<Clarify />} />
+        <Route path="photo" element={<Photo />} />
         <Route path="day" element={<MyDay />} />
         <Route path="*" element={<Navigate to="/app" replace />} />
       </Routes>
 
       <nav className="fixed bottom-0 inset-x-0 z-40 mx-auto max-w-md lg:absolute lg:inset-x-0">
         <div className="relative mx-4 mb-4 glass flex items-center justify-around py-2.5">
-          <Tab to="/app/day" label="আমার দিন">
-            <path d="M8 2v4M16 2v4M3 10h18M5 4h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z" />
+          <Tab to="/app/photo" label="ছবি">
+            <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" />
+            <circle cx="12" cy="13" r="4" />
           </Tab>
 
           <NavLink to="/app" end aria-label="রেকর্ড"

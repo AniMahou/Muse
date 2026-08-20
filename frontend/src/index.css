@@ -132,6 +132,11 @@
   }
 }
 
+@keyframes scan {
+  0% { top: -6rem; }
+  100% { top: 100%; }
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,

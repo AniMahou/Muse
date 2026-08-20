@@ -5,7 +5,7 @@ import { config, assertProviderKeys } from "@/common/config";
 import { logger } from "@/common/logger";
 import { collections, type Collections } from "@/db/client";
 
-import type { IAsrProvider, ILlmProvider, IStorage } from "@/pipeline/ports";
+import type { IAsrProvider, ILlmProvider, IOcrProvider, IStorage } from "@/pipeline/ports";
 import { FakeAsrProvider } from "@/adapters/asr/fake.adapter";
 import { GroqAsrProvider } from "@/adapters/asr/groq.adapter";
 import { GeminiAsrProvider } from "@/adapters/asr/gemini.adapter";
@@ -14,6 +14,7 @@ import { DemoLlmProvider } from "@/adapters/llm/demo.adapter";
 import { GroqLlmProvider } from "@/adapters/llm/groq.adapter";
 import { GeminiLlmProvider } from "@/adapters/llm/gemini.adapter";
 import { LocalStorage } from "@/adapters/storage/local.adapter";
+import { MockOcrProvider } from "@/adapters/ocr/mock.adapter";
 import { S3Storage } from "@/adapters/storage/s3.adapter";
 import { MongoCatalogRepo, MongoOutletRepo } from "@/adapters/catalog/mongo.repo";
 
@@ -55,6 +56,7 @@ export interface Container {
   storage: IStorage;
   asr: IAsrProvider;
   llm: ILlmProvider;
+  ocr: IOcrProvider;
   orchestrator: PipelineOrchestrator;
   buildOrchestrator(opts?: { brands?: string[] }): PipelineOrchestrator;
   clarifications: ClarificationService;
@@ -117,6 +119,7 @@ export function buildContainer(db: Db): Container {
   const storage = buildStorage();
   const asr = buildAsr();
   const llm = buildLlm();
+  const ocr = new MockOcrProvider();
 
   const catalog = new MongoCatalogRepo(cols);
   const outlets = new MongoOutletRepo(cols);
@@ -125,6 +128,7 @@ export function buildContainer(db: Db): Container {
     new PipelineOrchestrator(
       {
         transcribe: new TranscribeStage(asr),
+        ocr,
         numerals: new NumeralStage(),
         sku: new SkuResolverStage(catalog, {
           minScore: config.skuMatchMinScore,
@@ -173,6 +177,7 @@ export function buildContainer(db: Db): Container {
     storage,
     asr,
     llm,
+    ocr,
     orchestrator: buildOrchestrator(),
     buildOrchestrator,
     clarifications: new ClarificationService(

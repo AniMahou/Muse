@@ -187,6 +187,146 @@ export class AnalyticsService {
       .toArray();
   }
 
+  /**
+   * Daily volume, split by capture source.
+   *
+   * Fills gaps with zeroes rather than omitting them, so a sparse week draws
+   * a truthful flat line instead of a chart that silently compresses time.
+   */
+  async trend(companyId: string, range: Range, days = 14) {
+    const rows = await this.c.observations
+      .aggregate([
+        { $match: this.base(companyId, range) },
+        {
+          $group: {
+            _id: { day: { $substr: ["$recordedAt", 0, 10] } },
+            observations: { $sum: 1 },
+            flagged: { $sum: { $cond: [{ $eq: ["$status", "needs_clarification"] }, 1, 0] } },
+          },
+        },
+        { $project: { _id: 0, day: "$_id.day", observations: 1, flagged: 1 } },
+      ])
+      .toArray();
+
+    const byDay = new Map(rows.map((r) => [r.day as string, r]));
+    const out: Array<{ day: string; observations: number; flagged: number }> = [];
+    for (let i = days - 1; i >= 0; i--) {
+      const d = new Date(Date.now() - i * 86_400_000).toISOString().slice(0, 10);
+      const hit = byDay.get(d);
+      out.push({
+        day: d,
+        observations: (hit?.observations as number) ?? 0,
+        flagged: (hit?.flagged as number) ?? 0,
+      });
+    }
+    return out;
+  }
+
+  /**
+   * How the confidence gate is behaving, bucketed.
+   *
+   * The shape of this histogram is the honest answer to "does your confidence
+   * mean anything" — a system that scores everything 0.9 is not measuring, it
+   * is asserting.
+   */
+  async confidenceDistribution(companyId: string, range: Range) {
+    const rows = await this.c.observations
+      .aggregate([
+        { $match: this.base(companyId, range) },
+        {
+          $project: {
+            mean: { $avg: { $map: { input: { $objectToArray: "$fieldConfidence" }, as: "f", in: "$$f.v" } } },
+          },
+        },
+        {
+          $bucket: {
+            groupBy: "$mean",
+            boundaries: [0, 0.5, 0.6, 0.7, 0.8, 0.9, 1.01],
+            default: "other",
+            output: { count: { $sum: 1 } },
+          },
+        },
+      ])
+      .toArray();
+
+    const labels: Record<string, string> = {
+      "0": "<50", "0.5": "50-60", "0.6": "60-70",
+      "0.7": "70-80", "0.8": "80-90", "0.9": "90-100",
+    };
+    return rows.map((r) => ({
+      band: labels[String(r._id)] ?? String(r._id),
+      count: r.count as number,
+    }));
+  }
+
+  /**
+   * What actually ran, read back from processed clips.
+   *
+   * Reported from the clips themselves rather than from configuration,
+   * because the two drift: config says what SHOULD run, this says what did.
+   */
+  async pipelineStats(companyId: string, range: Range) {
+    const clips = await this.c.clips
+      .find({ companyId, status: "processed", recordedAt: { $gte: range.from, $lte: range.to } })
+      .toArray();
+
+    if (clips.length === 0) {
+      return {
+        clips: 0, voice: 0, photo: 0, simulated: 0,
+        extractors: [] as Array<{ name: string; model: string; count: number; simulated: boolean }>,
+        llm: null as { provider: string; model: string } | null,
+        avgExtractionConfidence: null as number | null,
+        stageTimings: [] as Array<{ stage: string; avgMs: number; p95Ms: number }>,
+      };
+    }
+
+    const byExtractor = new Map<string, { name: string; model: string; count: number; simulated: boolean }>();
+    const timings = new Map<string, number[]>();
+    let confSum = 0;
+    let confN = 0;
+
+    for (const c of clips) {
+      const p = c.pipeline;
+      if (!p) continue;
+      const key = `${p.extractor}/${p.extractorModel}`;
+      const hit = byExtractor.get(key);
+      if (hit) hit.count++;
+      else byExtractor.set(key, { name: p.extractor, model: p.extractorModel, count: 1, simulated: p.simulated });
+
+      if (typeof p.extractionConfidence === "number") {
+        confSum += p.extractionConfidence;
+        confN++;
+      }
+      for (const [stage, ms] of Object.entries(p.timings ?? {})) {
+        const arr = timings.get(stage) ?? [];
+        arr.push(ms);
+        timings.set(stage, arr);
+      }
+    }
+
+    const first = clips.find((c) => c.pipeline)?.pipeline;
+
+    return {
+      clips: clips.length,
+      voice: clips.filter((c) => c.source !== "photo").length,
+      photo: clips.filter((c) => c.source === "photo").length,
+      simulated: clips.filter((c) => c.pipeline?.simulated).length,
+      extractors: [...byExtractor.values()].sort((a, b) => b.count - a.count),
+      llm: first ? { provider: first.llmProvider, model: first.llmModel } : null,
+      avgExtractionConfidence: confN > 0 ? round(confSum / confN) : null,
+      stageTimings: [...timings.entries()]
+        .map(([stage, arr]) => {
+          const sorted = [...arr].sort((a, b) => a - b);
+          return {
+            stage,
+            avgMs: Math.round(arr.reduce((a, b) => a + b, 0) / arr.length),
+            p95Ms: sorted[Math.min(sorted.length - 1, Math.floor(sorted.length * 0.95))] ?? 0,
+          };
+        })
+        .sort((a, b) => a.stage.localeCompare(b.stage)),
+    };
+  }
+
   /** Counters for the Today screen. */
   async summary(companyId: string, range: Range) {
     const [row] = await this.c.observations
@@ -230,4 +370,9 @@ export class AnalyticsService {
       }
     );
   }
+}
+
+function round(n: number, dp = 3): number {
+  const f = 10 ** dp;
+  return Math.round(n * f) / f;
 }

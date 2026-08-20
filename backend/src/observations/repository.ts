@@ -1,11 +1,12 @@
 import { randomUUID } from "node:crypto";
-import type { Clip, ClipStatus, Observation } from "@shared/observation.schema";
+import type { Clip, ClipSource, ClipStatus, Observation } from "@shared/observation.schema";
 import type { ScoredObservation } from "@shared/stage-io";
 import type { Collections } from "@/db/client";
 
 export interface CreateClipInput {
   companyId: string;
   repId: string;
+  source?: ClipSource;
   clientUuid: string;
   storageKey: string;
   mimeType: string;
@@ -28,6 +29,8 @@ export class ObservationRepository {
     const clip: Clip = {
       clipId: `clip_${randomUUID()}`,
       ...input,
+      source: input.source ?? "voice",
+      pipeline: null,
       durationSec: null,
       status: "queued",
       error: null,
@@ -54,7 +57,7 @@ export class ObservationRepository {
   async setClipStatus(
     clipId: string,
     status: ClipStatus,
-    patch: Partial<Pick<Clip, "error" | "transcriptText" | "durationSec" | "observationCount">> = {},
+    patch: Partial<Pick<Clip, "error" | "transcriptText" | "durationSec" | "observationCount" | "pipeline">> = {},
   ): Promise<void> {
     await this.c.clips.updateOne(
       { clipId },

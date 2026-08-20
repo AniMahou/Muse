@@ -5,7 +5,7 @@ import {
   PipelineResultSchema,
   TranscriptSchema,
 } from "@shared/stage-io";
-import type { IStorage } from "./ports";
+import type { IOcrProvider, IStorage } from "./ports";
 import type { TranscribeStage } from "./stages/01-transcribe";
 import type { NumeralStage } from "./stages/02-normalize-numerals";
 import type { SkuResolverStage } from "./stages/03-resolve-sku";
@@ -25,6 +25,8 @@ export const PIPELINE_VERSION = "1";
 
 export interface OrchestratorStages {
   transcribe: TranscribeStage;
+  /** Optional: only companies using photo capture need one. */
+  ocr?: IOcrProvider;
   numerals: NumeralStage;
   sku: SkuResolverStage;
   outlet: OutletResolverStage;
@@ -42,6 +44,8 @@ export interface OrchestratorOptions {
   /** The rep's brand portfolio, which scopes the SKU candidate set. */
   brands?: string[];
 }
+
+export type ExtractionSource = "voice" | "photo";
 
 /**
  * Composes the six stages.
@@ -67,7 +71,7 @@ export class PipelineOrchestrator {
     this.cache = new StageCache(opts.cacheDir ?? "./.cache/stages", opts.cacheEnabled ?? false);
   }
 
-  async run(input: PipelineInput): Promise<PipelineResult> {
+  async run(input: PipelineInput & { source?: ExtractionSource }): Promise<PipelineResult> {
     const tracer = new Tracer(
       input.clipId,
       this.opts.traceDir ?? "./traces",
@@ -80,21 +84,34 @@ export class PipelineOrchestrator {
       const audio: Uint8Array = input.audio ?? (await this.storage.get(input.storageKey));
       const audioHash = sha256(audio);
 
-      // ---- 1. transcribe -------------------------------------------------
+      // ---- 1. extract text ------------------------------------------------
+      // Voice and photo diverge for exactly one stage. Everything after this
+      // line is identical, which is what makes adding a modality cheap.
+      const source: ExtractionSource = input.source ?? "voice";
+      const usePhoto = source === "photo" && !!this.stages.ocr;
+      const stageName = usePhoto ? "01-ocr" : "01-transcribe";
+
       const transcript = await this.step(
-        "01-transcribe",
-        { audioHash, language: this.opts.language, mimeType: input.mimeType },
+        stageName,
+        { hash: audioHash, source, language: this.opts.language, mimeType: input.mimeType },
         () =>
-          this.stages.transcribe
-            .run({
-              clipId: input.clipId,
-              audio,
-              mimeType: input.mimeType,
-              ...(this.opts.language ? { language: this.opts.language } : {}),
-            })
-            .then((r) => r.transcript),
+          usePhoto
+            ? this.stages.ocr!.recognise({
+                clipId: input.clipId,
+                image: audio,
+                mimeType: input.mimeType,
+                ...(this.opts.language ? { language: this.opts.language } : {}),
+              })
+            : this.stages.transcribe
+                .run({
+                  clipId: input.clipId,
+                  audio,
+                  mimeType: input.mimeType,
+                  ...(this.opts.language ? { language: this.opts.language } : {}),
+                })
+                .then((r) => r.transcript),
         TranscriptSchema,
-        { tracer, timings, cacheHits, input: { clipId: input.clipId, bytes: audio.byteLength } },
+        { tracer, timings, cacheHits, input: { clipId: input.clipId, bytes: audio.byteLength, source } },
       );
 
       // ---- 2/3/4. annotate, concurrently ---------------------------------

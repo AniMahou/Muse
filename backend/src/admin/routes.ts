@@ -227,6 +227,15 @@ export function adminRoutes(d: AdminDeps): Router {
   r.get("/analytics/rep-coverage", wrap(async (req, res) => {
     res.json({ rows: await d.analytics.repCoverage(company(req), range(req.query)) });
   }));
+  r.get("/analytics/trend", wrap(async (req, res) => {
+    res.json({ rows: await d.analytics.trend(company(req), range(req.query)) });
+  }));
+  r.get("/analytics/confidence", wrap(async (req, res) => {
+    res.json({ rows: await d.analytics.confidenceDistribution(company(req), range(req.query)) });
+  }));
+  r.get("/analytics/pipeline", wrap(async (req, res) => {
+    res.json(await d.analytics.pipelineStats(company(req), range(req.query)));
+  }));
   r.get("/analytics/types", wrap(async (req, res) => {
     res.json({ rows: await d.analytics.typeBreakdown(company(req), range(req.query)) });
   }));
