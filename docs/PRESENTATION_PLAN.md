@@ -1,406 +1,345 @@
-# Muse — presentation plan
+# Muse — deck plan v2
 
-Everything needed to build the deck: design system, slide-by-slide layout,
-copy, charts with real data, transitions, and delivery notes.
+Full specification for the slide deck. Light theme, ~22 slides, 9–11 minutes
+plus demo. Built for BrainChild 2.0 and the Intelligent Machines workshop.
 
-**Target:** BrainChild 2.0 (30 Aug) and the Intelligent Machines AI Builders
-workshop. ~20 slides, 8–10 minutes, plus Q&A.
-
----
-
-## 0. Why the deck is LIGHT while the product is DARK
-
-You asked for a light theme. That is correct, and for three reasons worth
-knowing rather than just complying with:
-
-1. **Projectors destroy dark decks.** A hall projector in daylight turns
-   `#0A0E1A` into muddy grey and kills every low-contrast detail. Light decks
-   survive bad projection; dark ones do not.
-2. **The dark product screenshots become the hero.** On a warm off-white slide,
-   a dark glassmorphic UI screenshot pops like a photograph in a gallery. Put
-   a dark UI on a dark slide and it disappears into the background.
-3. **Light reads as editorial and considered; dark reads as developer.** For a
-   judging panel of industry and academics, the first is worth more.
-
-So: **light deck, dark product.** The contrast is the design.
+**Companion file:** `SPEECH.md` — what to actually say, slide by slide.
 
 ---
 
-## 1. Design system
+## 0. Data integrity — read before building
 
-### Palette
+Judges at a technical fest test numbers. One unverifiable figure makes them
+doubt the real ones. Every statistic below is tagged:
+
+- **[VERIFIED]** — external source, cite it on the slide
+- **[MEASURED]** — we measured it in our own system
+- **[MODELLED]** — arithmetic from stated assumptions; **show the working**
+
+Never present a **[MODELLED]** figure as fact. Say *"on these assumptions"*
+out loud. A judge who can check your arithmetic trusts you more than one who
+is handed a confident round number.
+
+### The verified set
+
+| Figure | Source |
+|---|---|
+| Bangladesh FMCG market ≈ **$4B**, ~10% CAGR over the last decade | The Business Standard / FICCI |
+| **97%** of Bangladesh FMCG trade is traditional — small shops, rural outlets | The Business Standard / FICCI |
+| Global average retail out-of-stock rate ≈ **8.3%**; world-class is ≤3–4% | IHL Group / NIQ |
+| **58%** of shoppers who hit a stock-out become a *lost sale* | Zebra Global Shopper Study |
+| CPG loses ≈ **$130B/year** globally to out-of-stocks | IHL Group |
+| Global retail inventory distortion ≈ **$1.73T**, of which **$1.2T** is out-of-stocks | IHL Group |
+| Bengali ASR: ~3–5% WER on clean read benchmarks, **~34% on real long-form audio** | FLEURS / Common Voice / Bengali long-form evaluations |
+
+### The measured set — ours
+
+| Figure | Where it comes from |
+|---|---|
+| **412** automated tests, full suite in under 1 second | `npm test` |
+| Real ASR output `প্রান মাঙ্গো জুস` → **SKU-404 at 0.98**, margin 0.39 | live Groq run, in the repo traces |
+| Stage latency: extraction ~450–1250 ms, annotate **~40 ms**, assembly ~1.9 s | console → Intelligence → Stage latency |
+| Deterministic layer (grammar + resolvers + confidence) is **~40 ms of a ~2.4 s pipeline** | same |
+| Adding a whole second input modality touched **4 files** | git history |
+
+**Do not invent:** total retail outlet count in Bangladesh, FMCG field-force
+headcount, SFA adoption %, or retail-audit pricing. I could not verify any of
+them from a primary source.
+
+---
+
+## 1. The money slide — build the model on stage
+
+This is what "how much are we saving" should look like. It is **[MODELLED]**,
+and its credibility comes from showing every step.
+
+### Assumptions, stated on the slide
 
 ```
-INK          #14161F   headlines, primary text
-INK-SOFT     #4A4F5E   body text
+A mid-size Bangladeshi FMCG brand
+  covered outlets                     10,000
+  average monthly sell-through/outlet   ৳25,000
+  annual revenue through those outlets  ৳3,000,000,000   (~$25M)
+```
+
+### The arithmetic
+
+```
+Out-of-stock rate (global avg)                    8.3%   [VERIFIED]
+Share of stock-outs that become lost sales        58%    [VERIFIED]
+                                                  ─────
+Revenue lost to stock-outs        8.3% × 58%  =   4.8%
+
+4.8% of ৳3.0B                                =   ৳144,000,000 / year
+```
+
+### The lever
+
+Muse does not eliminate stock-outs. It **compresses how long they last** —
+from "discovered at the next audit" to "reported the same afternoon".
+
+```
+Conservative reduction in stock-out duration       20%
+৳144M × 20%                                 =  ৳28,800,000 / year recovered
+
+Cost of Muse   150 reps × ৳1,200/rep/month  =   ৳2,160,000 / year
+                                                ─────────────
+Return                                            ~13×
+```
+
+**Say this out loud:** *"That 20% is our assumption, not a measured result.
+Everything else on this slide is sourced. If you halve it, it is still a
+six-fold return."*
+
+Halving it and saying so is far more persuasive than defending a big number.
+
+### The second lever — do not try to price it
+
+Competitive response speed. A rep sees a competitor promo on Tuesday; today
+the brand manager learns from a sales dip weeks later. Muse makes that same-day.
+
+Present the **mechanism**, not a figure — you cannot honestly price it without
+customer data, and a judge will know that.
+
+---
+
+## 2. Why alternatives cannot do this
+
+A full slide. This is the question that decides whether they believe you have
+a business.
+
+| Alternative | What it captures | What it misses |
+|---|---|---|
+| **SFA / DMS apps** (the incumbent) | orders, GPS check-in, route compliance | every unstructured observation — *why* a shop refused, what the competitor did, what the retailer complained about |
+| **Retail audits** (Nielsen, Kantar) | rigorous, comparable, trusted | **sample-based and monthly** — you learn about last month, from some shops |
+| **WhatsApp groups** | photos, ad-hoc text | unstructured, unsearchable, dies in scroll, no aggregation |
+| **Hiring more reps** | more visits | the same capture problem, multiplied. Three more people still cannot correlate complaints across a region |
+| **Generic voice-to-text** (Otter, Google) | a transcript | no SKU resolution, no confidence, no Bangla numeral grammar. A transcript is not data |
+
+### Then the three-line moat
+
+**1. The hard part is not the speech recognition.**
+Anyone can call Whisper. The difficulty is that Bangla ASR returns ~34% word
+error rate on real field audio, and turning that into correct structured data
+needs a Bangla quantity grammar and closed-catalogue phonetic matching. That is
+domain work, not an API key.
+
+**2. The learning is customer-specific and compounding.**
+Every correction an admin approves teaches the resolver *that company's*
+vocabulary. After six months the system knows how their reps say their SKUs.
+A competitor starting fresh starts that learning over.
+
+**3. The architecture is what makes it deployable.**
+Constrained decoding means a product that was never resolved is not
+expressible. In an enterprise, a confidently wrong SKU is worse than no data —
+this is the difference between a demo and something a brand will actually
+connect to their master data.
+
+---
+
+## 3. Design system
+
+Unchanged from v1 — reproduced here so the deck can be built from one file.
+
+```
+INK          #14161F   headlines
+INK-SOFT     #4A4F5E   body
 INK-MUTED    #8A90A0   captions, axis labels
-PAPER        #FBFAF7   slide background — WARM off-white, never pure white
-PAPER-RAISED #FFFFFF   cards sitting on paper
-RULE         #E6E4DE   hairlines, dividers
+PAPER        #FBFAF7   background — WARM off-white, never pure white
+PAPER-RAISED #FFFFFF   cards
+RULE         #E6E4DE   hairlines
 
-INDIGO       #4F46E5   primary accent — same as the product
+INDIGO       #4F46E5   primary accent (same as the product)
 VIOLET       #7C5CFF   gradient partner
-CONFIDENT    #0E9F6E   confirmed / high confidence
-UNCERTAIN    #D97706   flagged / needs review  (amber, NEVER red)
-CRITICAL     #DC2626   used at most twice in the whole deck
+CONFIDENT    #0E9F6E   confirmed
+UNCERTAIN    #D97706   flagged — amber, NEVER red
+CRITICAL     #DC2626   at most twice in the whole deck
 ```
 
-**Pure white (`#FFFFFF`) as a background is a mistake under projection** — it
-glares and fatigues. The warm off-white `#FBFAF7` reads as paper and makes the
-indigo sing.
-
-**One accent per slide.** If a slide needs two, it is two slides.
-
-### The through-line: saturation = certainty
-
-The same rule that governs the product governs the deck. Anywhere confidence
-appears — charts, screenshots, diagrams — use:
+- **Pure white glares under projection.** Use `#FBFAF7`.
+- **One accent per slide.** Two accents means two slides.
+- **Saturation = certainty**, carried through charts, screenshots and diagrams.
+- **Bangla set 15–20% larger than Latin** — conjuncts carry more detail per
+  glyph and vanish at Latin sizes. Hind Siliguri, embedded or outlined.
 
 ```
-confirmed data      CONFIDENT green, full saturation
-uncertain data      UNCERTAIN amber
-raw/unjudged        INK-MUTED, desaturated
-```
+Display  Space Grotesk Bold    48–72pt
+Heading  Space Grotesk Medium  28–36pt
+Body     Inter Regular         18–22pt   never below 18
+Bangla   Hind Siliguri         24–40pt
+Mono     JetBrains Mono        16–18pt
+Numbers  tabular figures       64–120pt
 
-A judge who sees the same colour language in your logo, your charts and your
-live demo reads that as design maturity without being told.
-
-### Typography
-
-```
-Display    Space Grotesk Bold      48–72pt   headlines
-Heading    Space Grotesk Medium    28–36pt   slide titles
-Body       Inter Regular           18–22pt   never below 18pt
-Caption    Inter Medium            14–16pt   labels, sources
-Bangla     Hind Siliguri           24–40pt   set LARGER than Latin
-Mono       JetBrains Mono          16–18pt   code, metrics
-Numbers    tabular figures         64–120pt  the big stat moments
-```
-
-**Bangla must be set 15–20% larger than equivalent Latin.** Bengali conjuncts
-(যুক্তাক্ষর) carry more visual detail per glyph and disappear at Latin sizes.
-This is the single most common mistake in Bangladeshi decks.
-
-### Grid & spacing
-
-```
-Canvas       1920×1080 (16:9)
-Margins      120px left/right, 90px top/bottom
-Columns      12, 40px gutter
-Baseline     8px — every vertical measure is a multiple
-Card radius  16px
-Shadow       0 2px 8px rgba(20,22,31,0.06)  — one level only, never stacked
-```
-
-### Component specs
-
-**Stat block** (the hero number)
-```
-Number    Space Grotesk Bold, 120pt, INDIGO, tabular
-Label     Inter Medium, 16pt, INK-MUTED, letter-spacing 0.08em, UPPERCASE
-Context   Inter Regular, 18pt, INK-SOFT, one line under
-Rule      2px INDIGO, 64px wide, sitting above the number
-```
-
-**Quote card** (rep verbatim — use these often, they are your texture)
-```
-Card      PAPER-RAISED, radius 16, 40px padding, one soft shadow
-Bangla    Hind Siliguri, 32pt, INK
-Latin     Inter Italic, 18pt, INK-MUTED, directly beneath as translation
-Mark      A 64pt INDIGO opening quote, 20% opacity, behind the text
-```
-
-**Screenshot frame**
-```
-Device    Rounded rect, 24px radius, 12px PAPER-RAISED border
-Shadow    0 24px 60px rgba(20,22,31,0.14) — deeper than cards, it floats
-Tilt      Optional 3° rotation for depth; never more
-Callout   INDIGO circle + number, 32px, with a 1.5px leader line
-```
-
-**Section divider** (between acts)
-```
-Full-bleed INDIGO→VIOLET gradient, white Space Grotesk 56pt centred.
-Six of these in the deck. They are the breathing room.
+Canvas 1920×1080 · margins 120/90 · 12 cols · 8px baseline · radius 16
 ```
 
 ---
 
-## 2. Narrative arc
+## 4. Slide-by-slide
 
-Seven acts. The order is deliberate: **problem before product, product before
-architecture, evidence before business.** Judges disengage when a deck opens
-with technology.
+Seven acts. **Problem before product, product before architecture, evidence
+before business.** A deck that opens with technology loses the room.
 
-| Act | Slides | Purpose | Time |
-|---|---|---|---|
-| 1 · The loss | 1–4 | Make them feel the problem | 1:30 |
-| 2 · The insight | 5–6 | The idea that makes it possible | 1:00 |
-| 3 · The product | 7–9 | What it actually is | 1:30 |
-| 4 · The engineering | 10–13 | Why it works | 2:00 |
-| 5 · The evidence | 14–15 | Proof, honestly stated | 1:00 |
-| 6 · The business | 16–18 | Who pays, and why | 1:30 |
-| 7 · The future | 19–20 | Where it goes | 0:30 |
-
----
-
-## 3. Slide by slide
-
-### SLIDE 1 — Title
-
-**Layout:** centred, vast whitespace, nothing else on the slide.
-
-```
-                     মিউজ
-                     MUSE
-
-        Bangla voice → structured field intelligence
-
-              [name] · [name] · [name]
-                  BrainChild 2.0
-```
-
-- `মিউজ` in Hind Siliguri 96pt INK, `MUSE` beneath in Space Grotesk 40pt with
-  0.3em letter-spacing, INDIGO
-- Behind, at 6% opacity, a single enormous waveform in the INDIGO→VIOLET
-  gradient, bleeding off both edges
-- **Build:** waveform draws left→right over 1.2s, then the wordmark fades up
-
-**Say:** nothing for three seconds. Let it sit.
+| Act | Slides | Time |
+|---|---|---|
+| 1 · The loss | 1–4 | 1:30 |
+| 2 · The insight | 5–7 | 1:15 |
+| 3 · The product | 8–10 | 1:15 |
+| — **LIVE DEMO** — | | 3:00 |
+| 4 · The engineering | 11–15 | 2:15 |
+| 5 · The evidence | 16–17 | 1:00 |
+| 6 · The business | 18–20 | 1:45 |
+| 7 · The future | 21–22 | 0:45 |
 
 ---
 
-### SLIDE 2 — The scene
+### 1 · Title
+Centred, vast whitespace. `মিউজ` in Hind Siliguri 96pt, `MUSE` beneath in
+Space Grotesk 40pt with 0.3em tracking, INDIGO. A single enormous waveform at
+6% opacity bleeding off both edges.
+**Build:** waveform draws L→R over 1.2s, then the wordmark fades up.
 
-**Layout:** full-bleed photograph (a Dhaka grocery shop, a rep with a phone),
-INK overlay at 55%, text bottom-left in the third column.
+### 2 · The scene
+Full-bleed photograph of a Dhaka grocery shop, INK overlay 55%, text
+bottom-left.
+> Tuesday, 11 a.m. Mirpur.
+> A distribution rep sees a competitor's promo running in twelve shops.
 
+**Transition in:** hard cut. Abruptness is the point.
+
+### 3 · The loss ⭐
+A horizontal timeline the full width of the slide.
 ```
-Tuesday, 11 a.m. Mirpur.
-
-A distribution rep sees a competitor's promo
-running in twelve shops.
+Tuesday ●────────────────────────────────● October
+   the rep knows                  the brand manager finds out
+                    ↑ from a sales dip
 ```
+`19 weeks` in INK-MUTED 20pt beneath.
+**Build:** left dot → line draws *slowly* over 1.6s → right dot → "19 weeks".
+The slowness is the message.
 
-- Body Inter 28pt, PAPER
-- **Build:** photo fades in, then the two lines rise 12px and fade, staggered
-  200ms
-- **Transition in:** cut. No animation on entry — abruptness is the point.
+### 4 · Why it happens
+Two columns, 6/6.
 
----
+| What the SFA captures | What it doesn't |
+|---|---|
+| ✓ Order quantity | ✗ Why the shop refused |
+| ✓ SKU code | ✗ What the competitor is doing |
+| ✓ Outlet ID | ✗ Why stock isn't moving |
+| ✓ Timestamp | ✗ What the retailer complained about |
 
-### SLIDE 3 — The loss ⭐ the emotional core
+Full-width beneath, INK 32pt:
+> Typing three sentences across forty outlets a day is impossible. So nobody does.
 
-**Layout:** a horizontal timeline across the full slide width.
-
-```
-Tuesday ●────────────────────────────────────────────● October
-   the rep knows                              the brand manager
-                                                finds out
-                          ↑
-                  from a sales dip
-```
-
-- Line: 3px, INK-MUTED, with INDIGO dots at each end
-- Between them, in INK-MUTED 20pt: `19 weeks`
-- **Build:** left dot appears → line draws left-to-right over 1.6s (make it
-  feel *slow*, the delay is the message) → right dot → `19 weeks` fades in
-- **Speaker note:** "Nineteen weeks. And nobody did anything wrong."
-
----
-
-### SLIDE 4 — Why it happens
-
-**Layout:** two columns, 6/6.
-
-```
-LEFT                          RIGHT
-What the SFA captures         What it doesn't
-
-✓ Order quantity              ✗ Why the shop refused
-✓ SKU code                    ✗ What the competitor is doing
-✓ Outlet ID                   ✗ Why stock isn't moving
-✓ Timestamp                   ✗ What the retailer complained about
-```
-
-Beneath, full width, INK 32pt:
-
-```
-Typing three sentences across forty outlets a day is impossible.
-So nobody does.
-```
-
-- Left ticks CONFIDENT green; right crosses INK-MUTED (**not** red — this is
-  not a failure, it is a structural limit)
-- **Build:** left column all at once, pause 600ms, then right column staggered
-  120ms each. The pause is what sells it.
-
----
+Right column crosses in **INK-MUTED, not red** — this is a structural limit,
+not a failure. **Build:** left column at once → pause 600ms → right staggered.
 
 ### 🔵 DIVIDER — "There is one thing a rep will always do."
 
----
+### 5 · The insight
+Centred, single statement, Space Grotesk 72pt.
+> Fifteen seconds of voice is not impossible.
 
-### SLIDE 5 — The insight
+`voice` in INDIGO. Whole line fades as one unit — no stagger.
 
-**Layout:** centred, single line, enormous.
+### 6 · But the language is the hard part
+Chart left (7 cols), text right (5 cols).
 
+**CHART 1 — horizontal bars.** [VERIFIED]
 ```
-Fifteen seconds of voice
-is not impossible.
+Bengali ASR, FLEURS benchmark          ███ 3.1%
+Bengali ASR, Common Voice              ████ 5.5%
+Bengali ASR, REAL long-form audio      ██████████████████████ ~34%
 ```
+First two INK-MUTED; third CRITICAL — one of only two reds in the deck.
+**Build:** top two grow → pause 800ms → third grows slowly, overshooting.
 
-Space Grotesk 72pt, INK, with `voice` in INDIGO.
+> Published benchmarks are read, clean, studio speech.
+> Our user is in a market. Traffic. A ceiling fan. A shopkeeper talking over him.
+> **We designed for 34%, not 3%.**
 
-- **Build:** whole line fades up as one unit. No stagger. Let it land.
-
----
-
-### SLIDE 6 — But Bangla speech recognition is hard
-
-**Layout:** chart left (7 cols), text right (5 cols).
-
-**CHART 1 — the honesty chart.** Horizontal bars.
-
+### 7 · The thesis ⭐ the most important slide
 ```
-Bengali ASR, published benchmark (FLEURS)     ███ 3.1%
-Bengali ASR, published benchmark (CommonVoice)████ 5.5%
-Bengali ASR, REAL long-form audio             ██████████████████████████ ~34%
+The transcript doesn't need to be right.      ← strikethrough animates across
+The fields need to be right.                  ← INK 56pt, "fields" in INDIGO
 ```
+Say it, then stop talking for two full seconds.
 
-- First two bars INK-MUTED; the third CRITICAL red — one of only two reds in
-  the deck
-- **Build:** top two bars grow, pause 800ms, third bar grows *slowly* and
-  overshoots the others dramatically
+### 8 · What it looks like ⭐ real output
+Three bands.
 
-Right column:
-
-```
-Published benchmarks are read, clean, studio speech.
-
-Our user is in a market. Traffic. A ceiling fan.
-A shopkeeper talking over him.
-
-We designed for 34%, not 3%.
-```
-
-**Source line, bottom, 14pt INK-MUTED:** *FLEURS / Common Voice benchmarks;
-long-form figure from published Bangla ASR evaluations.*
-
----
-
-### 🔵 DIVIDER — "So we stopped trying to fix the transcript."
-
----
-
-### SLIDE 7 — The thesis ⭐ the single most important slide
-
-**Layout:** centred, two stacked statements.
-
-```
-The transcript doesn't need to be right.
-
-The fields need to be right.
-```
-
-- Line 1 in INK-MUTED 44pt, with a strikethrough animating across it
-- Line 2 in INK 56pt, `fields` in INDIGO
-- **Build:** line 1 appears → 800ms → strikethrough draws across it → line 2
-  fades up bold beneath
-
-**Speaker note:** this is the sentence they should remember tomorrow. Say it,
-then stop talking for two full seconds.
-
----
-
-### SLIDE 8 — What it looks like ⭐ live worked example
-
-**Layout:** three horizontal bands, top to bottom.
-
-**Band 1 — what Whisper actually returned** (use your real output):
-
+**Band 1 — actual Whisper output** (from the repo traces), Hind Siliguri 30pt:
 ```
 বজোই স্তোর মে প্রান মাঙ্গো জুস দের দর্জন লগেগা ঔর ভিল কা নযা আফ্যর দিযা হে পাঁচ তকা কম
 ```
+Highlight `বজোই` `স্তোর` `প্রান` `দের দর্জন` in UNCERTAIN amber, with the
+correct form annotated beneath each in INK-MUTED 14pt.
 
-Hind Siliguri 30pt. Highlight the wrong words in UNCERTAIN amber:
-`বজোই` `স্তোর` `প্রান` `দের দর্জন` — with tiny INK-MUTED annotations under
-each showing the correct form.
+**Band 2 —** large INDIGO downward arrow, animated.
 
-**Band 2 — a large INDIGO downward arrow, animated**
-
-**Band 3 — the structured result**, in a PAPER-RAISED card:
-
+**Band 3 —** PAPER-RAISED card:
 ```
 OUTLET     Bijoy Store (OUT-1182)      ●  0.79
 PRODUCT    PRAN Mango Juice 250ml      ●  0.98
 QUANTITY   18 piece                    ●  0.85
                                   দেড় ডজন = 1.5 × 12
 ```
+**Build:** transcript → errors highlight one by one (400ms apart) → arrow draws
+→ card slides up → confidence dots fill last.
 
-- **Build:** transcript appears → errors highlight amber one by one (400ms
-  apart) → arrow draws → result card slides up with the confidence dots
-  filling last
+### 9 · Two surfaces
+Phone screenshot left (tilted 3°), desktop console right, floating on PAPER
+with deep shadows. Captions: *The rep · 15 seconds* / *The brand manager ·
+Monday morning*.
 
-**Speaker note:** "Four words wrong. Every field right."
+### 10 · Two ways in, one pipeline
+```
+   🎙 voice ──┐
+              ├──→ SAME grammar · resolver · assembly · confidence
+   📷 photo ──┘
+```
+Small honest footnote: *photo text extraction is currently simulated;
+everything after it is the production pipeline.*
+
+**This slide sets up the demo. Go to the demo straight after it.**
 
 ---
 
-### SLIDE 9 — The two surfaces
-
-**Layout:** phone screenshot left (5 cols, tilted 3°), desktop screenshot right
-(7 cols), both floating on PAPER with deep shadows.
-
-Caption under each: `The rep · 15 seconds` / `The brand manager · Monday morning`
-
-- **Build:** phone slides in from left, desktop from right, 150ms apart
-- Use your actual Stitch screens — this is where the dark UI earns its keep
+## ▶ LIVE DEMO — 3 minutes (see `SPEECH.md` for the script)
 
 ---
 
 ### 🔵 DIVIDER — "How it survives a 34% error rate."
 
----
-
-### SLIDE 10 — The pipeline ⭐ architecture hero
-
-**Layout:** full-width horizontal flow diagram.
-
+### 11 · The pipeline
+Full-width horizontal flow.
 ```
-  🎙        ①            ②③④              ⑤             ⑥
- voice → TRANSCRIBE → ANNOTATE → ASSEMBLE → CONFIDENCE → data
-           [API]      (parallel)   [API]    (deterministic)
-                          │
-        ┌─────────────────┼─────────────────┐
-   quantity grammar   SKU resolver    outlet resolver
+ voice/photo → ① EXTRACT → ②③④ ANNOTATE → ⑤ ASSEMBLE → ⑥ CONFIDENCE → data
+                  [API]      (parallel)      [API]     (deterministic)
+                                 │
+              ┌──────────────────┼──────────────────┐
+        quantity grammar    SKU resolver      outlet resolver
 ```
+Stages 1 and 5 in INK-MUTED marked `third-party API`; 2, 3, 4, 6 in **INDIGO**
+marked `ours`. **Build:** left to right, 300ms apart — but 2/3/4 appear
+*simultaneously*, making the parallelism visible without a word.
 
-- Stages 1 and 5 in INK-MUTED boxes labelled `third-party API`
-- Stages 2, 3, 4, 6 in **INDIGO** boxes labelled `ours`
-- **Build:** left to right, one stage at a time, 300ms apart. When 2/3/4
-  appear, they appear *simultaneously* — visually making the parallelism point
-  without a word.
+> Two API calls. Everything that makes it work is ours.
 
-**Say:** "Two API calls. Everything that makes it work is ours."
+### 12 · The deterministic layer
+Two cards.
 
----
-
-### SLIDE 11 — The deterministic layer
-
-**Layout:** two cards side by side.
-
-**CARD A — Bangla quantity grammar**
+**A — Bangla quantity grammar**
 ```
-দেড়     1.5        ডজন    ×12
-আড়াই   2.5        হালি   ×4
-সাড়ে X  X+0.5      কুড়ি   ×20
-সোয়া X  X+0.25
-পৌনে X  X−0.25   ← subtracts
+দেড়    1.5      ডজন   ×12
+আড়াই  2.5      হালি  ×4
+সাড়ে X X+0.5    কুড়ি  ×20
+সোয়া X X+0.25
+পৌনে X X−0.25   ← subtracts
 ```
-Highlight `পৌনে` in UNCERTAIN amber with a callout: *"No general model gets
-this right."*
+`পৌনে` highlighted amber, callout: *"No general model gets this right."*
 
-**CARD B — phonetic collapse**
+**B — phonetic collapse**
 ```
 শ ষ স → s        ই ঈ → i
 ণ ন   → n        ট ত → t
@@ -408,370 +347,184 @@ this right."*
 
 হইল  →  huil  ←  Wheel
 ```
-The `হইল → huil ← Wheel` line in INDIGO, 32pt — it is the whole idea in one
-line.
+That last line in INDIGO 32pt. It is the whole idea in one line.
 
-- **Build:** card A, then card B, then the হইল line last with a soft glow pulse
-
----
-
-### SLIDE 12 — Hallucination is structurally impossible
-
-**Layout:** code block centred, generous whitespace either side.
-
+### 13 · Hallucination is structurally impossible
 ```ts
 // Rebuilt for EVERY clip
 skuId: z.enum(["SKU-404", "SKU-407"]).nullable()
               ↑ produced by the resolver, this clip only
 ```
+> A product that was never resolved is not expressible.
+> **That is a constraint, not a prompt instruction.**
 
-Beneath, INK 28pt:
+Your strongest differentiator against every "we told the LLM not to
+hallucinate" project in the room.
 
+### 14 · Confidence is derived, never self-reported
 ```
-A product that was never resolved
-is not expressible.
-
-That is a constraint, not a prompt instruction.
+field_confidence = asr_conf(span) × resolver_margin × grammar_hit
 ```
+Three chips beneath: *how clearly was it heard* · *was the choice actually
+decisive* · *canonical or recovered*.
 
-- **Build:** code appears → the arrow and annotation draw → the statement fades
-  up
+Then in UNCERTAIN amber:
+> We never ask the model how confident it is. Models are badly calibrated —
+> they will attach 0.95 to something they invented.
 
-**Speaker note:** the strongest technical differentiator against every "we told
-the LLM not to hallucinate" project in the room.
-
----
-
-### SLIDE 13 — Confidence is derived, never self-reported
-
-**Layout:** formula centred, then three evidence chips beneath.
-
+### 15 · It learns from one correction
 ```
-field_confidence  =  asr_conf(span) × resolver_margin × grammar_hit
+resolver unsure  →  admin approves once  →  never asks again
 ```
-
-```
-[ how clearly    ]  [ was the choice ]  [ canonical or ]
-[ was it heard   ]  [ actually       ]  [ recovered    ]
-[                ]  [ decisive       ]  [              ]
-```
-
-Then, in UNCERTAIN amber:
-
-```
-We never ask the model how confident it is.
-Models are badly calibrated — they will attach 0.95 to something they invented.
-```
-
-- **Build:** formula assembles term by term, each with its chip appearing below
+Screenshot of the Teach screen. Note beneath: *this is why the moat compounds
+— the system learns each customer's own vocabulary.*
 
 ---
 
 ### 🔵 DIVIDER — "Does it actually work?"
 
----
-
-### SLIDE 14 — The money chart ⭐⭐ the most important visual
-
-**CHART 2 — WER vs Field Accuracy.** Two enormous vertical bars, side by side,
-nothing else on the slide.
-
+### 16 · Evidence ⭐
+Three stat blocks across the slide. **[MEASURED]**
 ```
-     Word error rate          Field accuracy
-          ████                    ████████████████
-          ████                    ████████████████
-          [XX%]                        [YY%]
-       CRITICAL red               CONFIDENT green
+      412                    ~40 ms                    4
+AUTOMATED TESTS        DETERMINISTIC LAYER        FILES TOUCHED
+full suite <1s         of a ~2.4s pipeline     to add a second modality
 ```
+Beneath, the real worked example from slide 8 restated in one line:
+> Four words mis-transcribed. Every field correct.
 
-Beneath, INK 28pt centred:
+⚠️ **If the eval harness has run on labelled clips by then**, replace the
+middle block with WER vs field accuracy — that is the stronger chart. If it
+has not, use this and say so; *"one verified case, harness ready"* beats a
+number you cannot defend.
 
-```
-The transcript is wrong. The data is right.
-```
+### 17 · It knows when it doesn't know
+**CHART 2 — calibration curve** if you have eval data, otherwise the live
+confidence-distribution histogram from the console (real, and on screen).
 
-- **Build:** left bar grows fast → pause 1s → right bar grows *slowly* to full
-  height, overshooting dramatically
-- ⚠️ **Fill these numbers from your eval run.** Do not invent them. If the
-  harness has not run on labelled clips by then, replace this slide with the
-  single verified example from slide 8 and say so plainly — a judge respects
-  "one verified case, harness ready" far more than a number you cannot defend.
-
----
-
-### SLIDE 15 — It knows when it doesn't know
-
-**CHART 3 — calibration reliability curve.**
-
-```
-observed  1.0│                              ╱ perfect
-accuracy     │                          ╱ ·
-          0.8│                      ╱ ●
-             │                  ╱ ●
-          0.6│              ╱ ●
-             │          ╱
-          0.4│      ╱
-             └──────────────────────────────
-              0.4   0.6   0.8   1.0
-                  claimed confidence
-```
-
-- Diagonal in INK-MUTED dashed = perfect calibration
-- Our line in INDIGO with dots sized by sample count
-
-Beside it, a stat block:
-
+Beside it:
 ```
         15%
 FLAGGED FOR REVIEW
 which contain 80% of all errors
 ```
-
-- **Build:** axes → diagonal → our curve draws left to right → stat counts up
-
-**Say:** "It flags fifteen percent, and those fifteen percent contain eighty
-percent of the mistakes. That is a gate doing real work."
+Mark **[MODELLED]** unless the harness has produced it.
 
 ---
 
 ### 🔵 DIVIDER — "Who pays for this."
 
----
-
-### SLIDE 16 — The market
-
-**CHART 4 — donut, deliberately lopsided.**
-
+### 18 · The market
+**CHART 3 — deliberately lopsided donut.** [VERIFIED]
 ```
-        Bangladesh FMCG trade
-
-   ╭─────────────╮
-   │   ███████   │   97%  traditional trade
-   │  █████████  │        small shops, rural outlets
-   │  █████████  │        ← every one visited by a human
-   │   ███████   │
-   ╰─────────────╯    3%  modern retail
+97%  traditional trade — small shops, rural outlets
+      ← every one visited by a human
+ 3%  modern retail
 ```
+Three stat blocks: `~$4B` FMCG MARKET · `~10%` CAGR · `97%` TRADITIONAL TRADE.
+Source line: *The Business Standard / FICCI.*
 
-- 97% arc in INDIGO, 3% in RULE grey
-- Three stat blocks beneath:
+> Ninety-seven percent of this market is served by a person walking into a
+> small shop. Every one of those visits generates intelligence, and almost
+> none of it is captured.
 
-```
-   ~$4B              ~10%              97%
-FMCG MARKET      CAGR, LAST      TRADITIONAL
-   SIZE            DECADE           TRADE
-```
+### 19 · The money ⭐⭐
+The model from §1, built on screen line by line. Assumptions box in
+INK-MUTED, arithmetic in INK, the two results in INDIGO.
 
-**Source line:** *The Business Standard / FICCI, 2023–24.*
+**Build:** assumptions → OOS rate → lost-sale share → the 4.8% → ৳144M →
+pause → the lever → ৳28.8M → cost → **~13×**.
 
-**Say:** "Ninety-seven percent of this market is served by a person walking
-into a small shop. Every one of those visits generates intelligence, and
-almost none of it is captured."
+Then say the halving line.
 
----
-
-### SLIDE 17 — Who signs the cheque
-
-**Layout:** three persona cards.
-
-```
-BRAND MANAGER          FIELD OPS HEAD         THE COMPANY
-buys it                operates it            ACI · BAT
-                                              Unilever · PRAN
-
-"I find out about      "I can't review        Field forces of
- competitor moves       every recording"       hundreds. Thousands
- from a sales dip"                             of outlets.
-```
-
-- **Build:** cards appear left to right, 200ms apart
-- Company names in INDIGO — **naming real targets is what makes this concrete**
-
-**Speaker note (for the IM workshop specifically):** "Unilever and BAT are
-already your clients. This sells through relationships you own."
-
----
-
-### SLIDE 18 — Why not just hire more people
-
-**Layout:** a single objection, answered.
-
-```
-"Why not hire three more people?"
-```
-(INK-MUTED 36pt, in quotation marks)
-
-```
-Because three more people still can't
-correlate complaints across a region,
-and still can't be there on Tuesday.
-```
-(INK 32pt)
-
-Then, small, INK-MUTED:
-```
-Cost per field report: ৳X · p95 latency: Xs
-```
-
-- **Build:** objection appears → 1s pause → answer fades up
-
-**Speaker note:** raise the strongest objection yourself, before the CEO does.
-It is the single most credible move available in the whole talk.
+### 20 · Why nobody else can just do this
+The comparison table from §2, then the three-line moat.
+**Build:** table rows one at a time, then the moat lines.
 
 ---
 
 ### 🔵 DIVIDER — "Where this goes."
 
----
-
-### SLIDE 19 — The roadmap
-
-**Layout:** three horizontal tiers, expanding rightward.
-
+### 21 · Roadmap
+Three tiers expanding rightward.
 ```
-NOW              NEXT                    LATER
-─────            ────                    ─────
-Voice → data     Domain-tuned ASR        Predictive stock-out
-Confidence       (n-gram fusion on       Cross-region anomaly
-  gating          our own catalogue)      detection
-Alias learning   Learned confidence      Multi-language
-                  model                   (Hindi, Urdu — same
-Bangla           Field-ops analytics       architecture)
+NOW                    NEXT                      LATER
+Voice → data           Real OCR (printed         Predictive stock-out
+Photo → data             signage, price tags)    Cross-region anomaly
+Confidence gating      Domain-tuned Bangla ASR   Other field forces:
+Alias learning         Learned confidence          pharma reps, microfinance
+Bangla                   model                     officers, NGO surveys
 ```
+NOW in CONFIDENT green, NEXT in INDIGO, LATER in INK-MUTED.
 
-- NOW in CONFIDENT green, NEXT in INDIGO, LATER in INK-MUTED
-- **Build:** tier by tier, each expanding wider than the last
+The last line is the business expansion: *the same architecture, a different
+catalogue and schema.* FMCG is the beachhead, not the ceiling.
 
----
+### 22 · Close
+Back to slide 1's composition; the waveform returns.
+> Every fifteen seconds of voice becomes something a company can act on.
 
-### SLIDE 20 — Close
-
-**Layout:** back to slide 1's composition. The waveform returns.
-
-```
-                     মিউজ
-
-       Every fifteen seconds of voice
-       becomes something a company can act on.
-
-                   [ QR to repo ]
-```
-
-- **Build:** waveform draws, then the line, then the QR
+QR to the repo.
 
 ---
 
-## 4. Charts — build specs
+## 5. Charts
 
-| # | Chart | Slide | Data source |
+| # | Chart | Slide | Data |
 |---|---|---|---|
-| 1 | ASR benchmark gap (horizontal bars) | 6 | Published benchmarks; cite them |
-| 2 | **WER vs field accuracy** (2 bars) | 14 | **Your eval run** |
-| 3 | Calibration reliability curve | 15 | **Your eval run** |
-| 4 | Traditional trade donut | 16 | TBS / FICCI |
+| 1 | ASR benchmark gap, horizontal bars | 6 | [VERIFIED] |
+| 2 | Calibration curve *or* confidence histogram | 17 | eval run / live console |
+| 3 | Traditional-trade donut | 18 | [VERIFIED] |
+| 4 | ROI waterfall | 19 | [MODELLED] — show the arithmetic |
 
-**Rules for every chart:**
+**Rules.** No gridlines unless a value must be read precisely — label bars
+directly. No legends; label in place. Tabular figures always. **Never a 3D
+chart; never a pie with more than three segments.** Every chart animates in the
+direction it is read.
 
-- No gridlines unless a value must be read precisely. Label the bars directly.
-- No legends — label in place.
-- Tabular figures always, so numbers do not shift during a count-up animation.
-- **Never a 3D chart. Never a pie with more than three segments.**
-- Axis labels in INK-MUTED 14pt; values in INK 20pt.
-- Every chart animates *in the direction it is read* — bars grow from their
-  baseline, lines draw left to right.
-
-**Build them in code, not by hand.** You already have a design system; render
-them as SVG so they are crisp on a projector and trivially re-rendered when the
-eval numbers change.
+Build them as SVG in code, so they re-render instantly when numbers change.
 
 ---
 
-## 5. Transitions
+## 6. Transitions
 
-**Between slides within an act:** cut, or a 200ms cross-fade. Nothing else.
-
-**Into a divider:** the INDIGO→VIOLET gradient wipes in from the left over
-400ms. This is the only slide-level motion in the deck, which is exactly why it
-signals "new section".
-
-**Out of a divider:** cut.
-
-**Within a slide:** build order carries meaning. Reveal in the order you want
-the argument understood, never all at once. Standard timings:
+- **Within an act:** cut, or a 200ms cross-fade. Nothing else.
+- **Into a divider:** INDIGO→VIOLET gradient wipes from the left, 400ms. The
+  only slide-level motion in the deck, which is why it reads as a section break.
+- **Out of a divider:** cut.
 
 ```
-element fade-up      300ms, cubic-bezier(0.22, 1, 0.36, 1), 12px rise
-stagger between      120ms
-dramatic pause       800–1000ms  (slides 4, 6, 7, 14 — the pause IS the point)
-bar/line draw        1200ms ease-out
-number count-up      800ms
+element fade-up   300ms cubic-bezier(0.22,1,0.36,1), 12px rise
+stagger           120ms
+dramatic pause    800–1000ms   (slides 4, 6, 7, 19)
+bar/line draw     1200ms ease-out
+number count-up   800ms
 ```
 
-**Never use:** spin, bounce, cube, zoom, page-curl, or anything that draws
-attention to the transition rather than the content. One flashy transition
-costs more credibility than it buys.
-
----
-
-## 6. Data integrity — read this before you build
-
-Judges at a technical fest ask about numbers. Getting caught with an invented
-figure is far worse than having fewer figures.
-
-**Solid, cite the source on the slide:**
-- Bangladesh FMCG market ~$4B, ~10% CAGR *(TBS / FICCI)*
-- ~97% of FMCG trade is traditional *(TBS / FICCI)*
-- Bengali ASR benchmark figures *(FLEURS, Common Voice)*
-
-**Yours, and therefore the strongest — you measured them:**
-- The corrupted-transcript worked example on slide 8
-- 399 automated tests
-- Pipeline stage timings
-- Whatever the eval harness produces on labelled clips
-
-**⚠️ Verify before quoting, or cut:**
-- Total retail outlet count in Bangladesh (~1M is commonly repeated; I could
-  not confirm it from a primary source)
-- FMCG field-rep headcount
-- SFA adoption percentage
-
-If a number is not verified, **do not put it on a slide.** Say "we estimate"
-out loud instead, or leave it out. One unverifiable statistic invites the panel
-to doubt the ones that are real.
+**Never:** spin, bounce, cube, zoom, page-curl. One flashy transition costs
+more credibility than it buys.
 
 ---
 
 ## 7. Delivery
 
-**Build in:** Figma Slides or Google Slides. Avoid Gamma and similar generators
-— they impose a visual language and it is not this one.
-
-**Export:** PDF *and* a 1080p video of the full build sequence as backup.
-Venue laptops fail; a video always plays.
-
-**Fonts:** embed or outline them. Hind Siliguri absent on the venue machine
-means every Bangla slide renders as boxes — the same failure that hit your
-Stitch screens, at a much worse moment.
-
-**Test on a projector, not a monitor.** Contrast that looks generous on a
-laptop collapses under projection. Check slides 6, 14 and 15 specifically.
-
-**Rehearse the pauses.** Slides 3, 5, 7 and 14 each have a silence in them. In
-rehearsal they feel unbearably long; from the audience they read as confidence.
-
-**The live demo goes between slides 9 and 10** — after they know what it is,
-before you explain how. If the demo fails, slide 8 already showed a real
-verified result, so you keep moving.
-
----
+- **Build in** Figma Slides or Google Slides. Avoid Gamma-style generators —
+  they impose a visual language and it is not this one.
+- **Export** PDF *and* a 1080p video of the full build. Venue laptops fail.
+- **Embed or outline the fonts.** Hind Siliguri missing on the venue machine
+  means every Bangla slide renders as boxes — the exact failure that hit the
+  first design pass, at a much worse moment.
+- **Test on a projector, not a monitor.** Check slides 6, 17 and 19.
+- **Rehearse the pauses.** Slides 3, 5, 7 and 19 each contain a silence. In
+  rehearsal they feel unbearable; from the audience they read as confidence.
 
 ## 8. Build order
 
-1. Design system + master slides (palette, type, dividers)
-2. Slides 7, 8, 14 — the three that carry the argument
+1. Design system + master slides + dividers
+2. Slides 7, 8, 19 — the three that carry the argument
 3. The four charts, in code
 4. Everything else
 5. Transitions and build order
 6. **Rehearse against a clock**
 
-If you run out of time, cut slides 4, 11 and 19 before touching anything else.
+Short on time? Cut 4, 12 and 21 before touching anything else.
