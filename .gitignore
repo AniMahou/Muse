@@ -23,3 +23,6 @@ npm-debug.log*
 
 # Stitch exports live unzipped in design/; the archives do not.
 *.zip
+docs/report/*.png
+docs/report/*.aux
+docs/report/*.log
