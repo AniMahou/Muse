@@ -16,6 +16,7 @@
 import { promises as fs } from "node:fs";
 import path from "node:path";
 import { ClipLabelSchema, type ClipLabel } from "@shared/label.schema";
+import { mimeForExtension } from "@/common/audio";
 import { connectMongo, closeMongo } from "@/db/client";
 import { buildContainer } from "@/container";
 import { config } from "@/common/config";
@@ -108,7 +109,7 @@ async function main(): Promise<void> {
         repId: "EVAL",
         audio: new Uint8Array(audio),
         storageKey: label.audioFile,
-        mimeType: "audio/webm",
+        mimeType: mimeForExtension(path.extname(label.audioFile)),
         geo: label.geo,
         declaredOutletId: null,
         recordedAt: new Date().toISOString(),

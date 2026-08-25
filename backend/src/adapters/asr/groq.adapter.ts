@@ -1,5 +1,6 @@
 import type { Transcript, Word } from "@shared/stage-io";
 import type { AsrRequest, IAsrProvider } from "@/pipeline/ports";
+import { extensionForMime } from "@/common/audio";
 import { ProviderError } from "@/common/errors";
 import { attachSpans } from "@/common/transcript";
 import { segmentConfidence } from "./confidence";
@@ -57,7 +58,10 @@ export class GroqAsrProvider implements IAsrProvider {
     new Uint8Array(bytes).set(req.audio);
 
     const form = new FormData();
-    form.append("file", new Blob([bytes], { type: req.mimeType }), `${req.clipId}.webm`);
+    // Groq identifies the container from the filename as well as the
+    // content type, so the extension has to follow the actual bytes.
+    const filename = `${req.clipId}${extensionForMime(req.mimeType)}`;
+    form.append("file", new Blob([bytes], { type: req.mimeType }), filename);
     form.append("model", this.model);
     form.append("response_format", "verbose_json");
     form.append("timestamp_granularities[]", "word");
