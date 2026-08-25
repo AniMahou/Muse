@@ -21,7 +21,9 @@ import { promisify } from "node:util";
 
 const exec = promisify(execFile);
 
-const AUDIO = new Set([".m4a", ".mp3", ".wav", ".aac", ".mp4", ".ogg", ".opus", ".webm", ".caf", ".amr"]);
+// Android recorders emit 3gp/amr as readily as m4a; iOS emits m4a and caf.
+const AUDIO = new Set([".m4a", ".mp3", ".wav", ".aac", ".mp4", ".ogg", ".opus",
+  ".webm", ".caf", ".amr", ".3gp", ".3gpp", ".wma", ".flac"]);
 const CLIP_NAME = /^clip-\d{2}-[a-z]$/;
 const OUT_DIR = path.resolve(process.cwd(), "datasets/clips");
 

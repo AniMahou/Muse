@@ -22,31 +22,67 @@ substitutes for.
 
 ## One-time setup — about fifteen minutes
 
+### A note on `&&`
+
+Windows PowerShell 5.1 — the default on Windows 10 — does **not** support `&&`. Every
+command below is therefore written on its own line. Run them one at a time and it works
+in PowerShell, in cmd, in Git Bash and on Linux alike.
+
+### 1 · Get the code
+
 ```bash
 git pull
 ```
 
 ```bash
-cd backend && npm install
+cd backend
 ```
 
-You need `ffmpeg`. Check it:
+```bash
+npm install
+```
+
+### 2 · Install ffmpeg
+
+Check whether you already have it:
 
 ```bash
 ffmpeg -version
 ```
 
-If that fails — macOS `brew install ffmpeg`, Ubuntu `sudo apt install ffmpeg`.
+If that fails:
 
-Then confirm the toolchain works. This should run and tell you what is still missing:
+| | |
+|---|---|
+| **Windows** | `winget install Gyan.FFmpeg` — then **close and reopen the terminal**, or PATH will not have updated |
+| Windows, if winget is missing | `choco install ffmpeg` |
+| Ubuntu / Debian / WSL | `sudo apt update` then `sudo apt install ffmpeg` |
+| Fedora | `sudo dnf install ffmpeg` |
+| macOS | `brew install ffmpeg` |
+
+Then check again — **both** of these must print a version, because the collector uses
+each of them:
 
 ```bash
-cd backend && npm run labels:check
+ffmpeg -version
 ```
 
-You do **not** need Docker, MongoDB, Redis, or any API key. Nothing you run touches them.
+```bash
+ffprobe -version
+```
 
----
+### 3 · Confirm the toolchain
+
+From the `backend` folder:
+
+```bash
+npm run labels:check
+```
+
+It should print `0 clip(s) valid` and a list of what is still missing. That is success —
+it means everything runs and there is simply no data yet.
+
+You do **not** need Docker, MongoDB, Redis, or any API key. Nothing you run touches them.
 
 ## What you are recording
 
@@ -100,8 +136,16 @@ Two digits for the card, always: `clip-07-a`, not `clip-7-a`.
 Move the files into one folder — AirDrop, a cable, Google Drive, whatever is easiest — then:
 
 ```bash
-cd backend && npm run collect -- ~/Desktop/muse-clips
+npm run collect -- "C:\\Users\\you\\Desktop\\muse-clips"
 ```
+
+On Linux or macOS the path is the ordinary one:
+
+```bash
+npm run collect -- ~/Desktop/muse-clips
+```
+
+Quote the path if it contains a space. Run it from the `backend` folder.
 
 That converts each recording to the format the pipeline wants and puts it in
 `datasets/clips/`. Run it as often as you like; clips already ingested are skipped.
@@ -150,7 +194,7 @@ an error the system did not make.
 Export your sheet tab as CSV, save it to `backend/datasets/raw/clips.csv`, then:
 
 ```bash
-cd backend && npm run labels:check
+npm run labels:check
 ```
 
 It validates every row and prints the **spreadsheet row number** of anything wrong:
@@ -167,11 +211,19 @@ speaker count, how many clips carry more than one observation.
 Fix, re-run, repeat until it is clean. Then:
 
 ```bash
-cd backend && npm run labels:build
+npm run labels:build
 ```
 
 ```bash
-git add datasets/raw/clips.csv datasets/labels && git commit -m "data: labelled field clips" && git push
+git add datasets/raw/clips.csv datasets/labels
+```
+
+```bash
+git commit -m "data: labelled field clips"
+```
+
+```bash
+git push
 ```
 
 Audio files stay out of git deliberately — they are large and `datasets/clips/` is
@@ -198,7 +250,9 @@ push. Re-record anything flagged.
 
 | | |
 |---|---|
-| `ffmpeg: command not found` | `brew install ffmpeg` / `sudo apt install ffmpeg` |
+| `ffmpeg: command not found` | install it (table above), then **reopen the terminal** |
+| `ffprobe: command not found` | same install; ffprobe ships with ffmpeg |
+| PowerShell rejects `&&` | run each command on its own line |
 | `skip … name must look like clip-01-a` | rename the file — two digits for the card |
 | `thin — under 2 seconds` | the recorder stopped early, record it again |
 | `no audio at datasets/clips/…` | run `npm run collect` again, or check the spelling of `clip_id` |
