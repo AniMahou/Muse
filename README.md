@@ -220,21 +220,35 @@ deterministic tests.
 
 ## Status
 
-Nothing below is implemented yet. This repository currently contains design only.
+The pipeline runs end to end on live speech and language models: 412 tests, ~13,650 lines,
+both capture modalities. Two things are honestly unfinished, and both are stated here
+rather than discovered.
 
 | | |
 |---|---|
+| ✅ | Walking skeleton — capture → pipeline → database → dashboard |
+| ✅ | Stage 2 · Bangla quantity grammar (দেড় · আড়াই · সোয়া · পৌনে · ডজন · হালি) |
+| ✅ | Stages 3–4 · phonetic SKU resolver, GPS + spoken-name outlet resolver |
+| ✅ | Stage 5 · constrained assembly, response schema rebuilt per clip |
+| ✅ | Stage 6 · derived confidence + clarification loop |
+| ✅ | PWA recorder with offline IndexedDB queue |
+| ✅ | Admin — catalogue import, alias approvals, territories, rep assignment |
+| ✅ | Analytics — share of voice, stock-out grid, price erosion, pipeline latency |
+| ✅ | Auth — companies, invited reps, role-scoped applications |
+| ✅ | Evaluation harness — metrics, calibration, regression gate |
+| 🟡 | Photo capture — the pipeline is real, **the handwriting reading is simulated** |
+| 🟡 | Labelled evaluation set — collection in progress; see `docs/COLLECTION.md` |
+| ⬜ | **A measured accuracy figure.** The harness has never run on real labelled data |
 | ⬜ | ASR provider bake-off on domain audio |
-| ⬜ | Labelled evaluation set (target: 100 real field clips) |
-| ⬜ | Walking skeleton — upload → fakes → database → dashboard |
-| ⬜ | Stage 2 · quantity grammar |
-| ⬜ | Stages 3–4 · resolvers |
-| ⬜ | Stage 5 · constrained assembly |
-| ⬜ | Stage 6 · confidence + clarification loop |
-| ⬜ | Evaluation harness + calibration |
-| ⬜ | PWA recorder with offline queue |
-| ⬜ | Admin — catalogue import, alias approvals, territories |
-| ⬜ | Analytics — share of voice, stock-out heatmap, price erosion |
+| ⬜ | Learned confidence model — blocked on the labelled set, not on design |
+| ⬜ | Real OCR. Printed price tags and signage are feasible; handwritten Bangla is not yet |
+
+**No accuracy number exists yet**, and none is quoted anywhere in this repository. The
+evaluation harness is built and gated on regression; `datasets/labels/` is where its
+input goes. Every metric this project could claim is blocked on fieldwork rather than
+on code, which is why collection is the top of the queue rather than features.
+
+**Nobody is using it.** No pilot, no customers. It runs end to end on a demo tenant.
 
 ### Deliberately out of scope
 
