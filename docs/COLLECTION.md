@@ -5,6 +5,11 @@ change any code.
 
 **Target: 40 clips, labelled and validated, by Thursday evening.**
 
+> **Stuck on anything?** [COLLECTION-HANDBOOK.md](COLLECTION-HANDBOOK.md) explains every
+> step, every command and every error message in full. It is written to be self-contained —
+> paste the whole file into ChatGPT along with your error and it can help you without
+> needing the repo. Do that before waiting on anyone.
+
 ---
 
 ## Why this matters more than it looks

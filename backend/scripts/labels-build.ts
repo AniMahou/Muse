@@ -168,7 +168,7 @@ async function main(): Promise<void> {
 
     const audioFile = `${clipId}.wav`;
     const hasAudio = await fs.access(path.join(CLIPS, audioFile)).then(() => true, () => false);
-    if (!hasAudio) fail(at, `no audio at datasets/clips/${audioFile} — run npm run collect`);
+    if (!hasAudio) fail(at, `no audio at datasets/clips/${audioFile} — record it with npm run mic, or ingest it with npm run collect`);
 
     const noise = (r.noise ?? "moderate").trim() || "moderate";
     if (!NOISE.has(noise)) fail(at, `noise "${noise}" must be quiet, moderate or loud`);
