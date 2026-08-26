@@ -87,6 +87,12 @@ export function makeProcessClip(container: Container) {
         result.annotations.skus,
       );
 
+      // Corroboration, not notification. Three independent outlets reporting
+      // the same competitor promo is a campaign; one rep reporting it is an
+      // anecdote. The service decides which this was, and stays silent unless
+      // it is the former.
+      const alerts = await container.alerts.evaluate(companyId, saved);
+
       container.realtime.clipStatus(companyId, { clipId, status: "processed" });
       container.realtime.observationsCreated(companyId, saved);
 
@@ -97,6 +103,7 @@ export function makeProcessClip(container: Container) {
           flagged: saved.filter((o) => o.status === "needs_clarification").length,
           prompts,
           aliasCandidates,
+          alerts: alerts.length,
           ms: Date.now() - started,
           cacheHits: result.cacheHits,
         },

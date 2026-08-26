@@ -5,6 +5,7 @@ import { Logo } from "@/shared/ui/Logo";
 
 const NAV = [
   { to: "/console", label: "Today", end: true, icon: "M8 2v4M16 2v4M3 10h18M5 4h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z" },
+  { to: "/console/alerts", label: "Alerts", icon: "M12 2a7 7 0 0 0-7 7v4l-2 3h18l-2-3V9a7 7 0 0 0-7-7zM10 21h4" },
   { to: "/console/intelligence", label: "Intelligence", icon: "M3 3v18h18M7 15l4-4 3 3 5-6" },
   { to: "/console/review", label: "Review", icon: "M9 11l3 3 8-8M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11" },
   { to: "/console/aliases", label: "Teach", icon: "M12 2 2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" },

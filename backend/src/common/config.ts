@@ -64,6 +64,11 @@ const ConfigSchema = z.object({
   outletMaxCandidates: num(5),
   clarificationTimeoutHours: num(24),
 
+  // Distinct outlets that must independently report the same thing before
+  // anyone is interrupted, and how far back agreement counts.
+  alertMinOutlets: num(3),
+  alertWindowHours: num(24),
+
   traceEnabled: bool(true),
   traceDir: z.string().default("./traces"),
   stageCacheEnabled: bool(true),
@@ -122,6 +127,8 @@ function read(): Config {
     outletRadiusM: env.OUTLET_RADIUS_M,
     outletMaxCandidates: env.OUTLET_MAX_CANDIDATES,
     clarificationTimeoutHours: env.CLARIFICATION_TIMEOUT_HOURS,
+    alertMinOutlets: env.ALERT_MIN_OUTLETS,
+    alertWindowHours: env.ALERT_WINDOW_HOURS,
 
     traceEnabled: env.TRACE_ENABLED,
     traceDir: env.TRACE_DIR,

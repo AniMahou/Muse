@@ -1,5 +1,6 @@
 import { io, type Socket } from "socket.io-client";
 import type { Observation } from "@shared/observation.schema";
+import type { Alert } from "@shared/alert.schema";
 
 let socket: Socket | null = null;
 
@@ -29,6 +30,16 @@ export function onObservations(fn: (rows: Observation[]) => void): () => void {
 export function onObservationUpdated(fn: (row: Observation) => void): () => void {
   socket?.on("observation:updated", fn);
   return () => void socket?.off("observation:updated", fn);
+}
+
+export function onAlertRaised(fn: (a: Alert) => void): () => void {
+  socket?.on("alert:raised", fn);
+  return () => void socket?.off("alert:raised", fn);
+}
+
+export function onAlertUpdated(fn: (a: Alert) => void): () => void {
+  socket?.on("alert:updated", fn);
+  return () => void socket?.off("alert:updated", fn);
 }
 
 export function disconnectRealtime(): void {

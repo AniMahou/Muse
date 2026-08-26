@@ -7,6 +7,7 @@ import type { CatalogImportService } from "@/catalog/import.service";
 import type { AliasService } from "@/catalog/alias.service";
 import type { AnalyticsService } from "@/analytics/service";
 import type { ClarificationService } from "@/clarification/service";
+import type { AlertService } from "@/alerts/service";
 import { adminAuth } from "./auth.middleware";
 
 const RangeQuery = z.object({
@@ -32,6 +33,7 @@ export interface AdminDeps {
   aliases: AliasService;
   analytics: AnalyticsService;
   clarifications: ClarificationService;
+  alerts: AlertService;
 }
 
 export function adminRoutes(d: AdminDeps): Router {
@@ -102,6 +104,67 @@ export function adminRoutes(d: AdminDeps): Router {
 
     await d.clarifications.cancelFor(id);
     res.json({ observation: updated });
+  }));
+
+  // ---- alerts ------------------------------------------------------------
+
+  /**
+   * The console's action queue.
+   *
+   * Open alerts first, then answered ones — a reviewer wants what still needs
+   * a response, with the recent history underneath for context rather than on
+   * a separate screen.
+   */
+  r.get("/alerts", wrap(async (req, res) => {
+    const status = req.query.status as string | undefined;
+    res.json({
+      alerts: await d.alerts.list(company(req), {
+        ...(status ? { status: status as never } : {}),
+        limit: Number(req.query.limit ?? 50),
+      }),
+    });
+  }));
+
+  /**
+   * A human takes an alert, or decides it does not merit action.
+   *
+   * Both stop the clock. "We looked and chose not to act" is a real response,
+   * and treating it as a non-response would make the median reward acting on
+   * things that did not deserve it.
+   */
+  r.post("/alerts/:id/respond", wrap(async (req, res) => {
+    const body = z
+      .object({
+        status: z.enum(["acknowledged", "dismissed"]).default("acknowledged"),
+        by: z.string().default("admin"),
+        note: z.string().max(500).optional(),
+      })
+      .safeParse(req.body ?? {});
+    if (!body.success) throw new ValidationError("invalid response", body.error.issues);
+
+    const updated = await d.alerts.respond(
+      company(req),
+      req.params.id ?? "",
+      body.data.status,
+      body.data.by,
+      body.data.note,
+    );
+    // Already answered by somebody else, or never existed. Same 404 either
+    // way: two people clicking the same alert should not produce a 500.
+    if (!updated) throw new AppError("alert not found or already answered", 404, "not_found");
+    res.json({ alert: updated });
+  }));
+
+  /**
+   * Time-to-response.
+   *
+   * The one operational number this product can honestly claim to move. Muse
+   * does not fix a stock-out — that is the distributor's job. It compresses
+   * how long it takes anyone to know, and this measures exactly that, with
+   * both ends of the clock inside the system.
+   */
+  r.get("/alerts/stats", wrap(async (req, res) => {
+    res.json(await d.alerts.responsiveness(company(req), range(req.query).from));
   }));
 
   // ---- alias approvals ---------------------------------------------------

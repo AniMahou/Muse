@@ -1,7 +1,16 @@
 import { useEffect, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { clipQueue, type QueuedClip } from "./lib/queue";
 import { WaveThumb } from "./Waveform";
 import { useAuth } from "@/shared/lib/auth-store";
+import { api } from "@/shared/lib/api";
+
+interface Impact {
+  observations: number;
+  outletsCovered: number;
+  alertsContributed: number;
+  alertsActioned: number;
+}
 
 export function MyDay() {
   const user = useAuth((s) => s.user);
@@ -29,6 +38,8 @@ export function MyDay() {
         <Stat label="পাঠানো" value={today.filter((c) => c.status === "sent").length} />
       </div>
 
+      <Impact />
+
       <p className="label mb-3">আজকের রেকর্ড</p>
       <div className="space-y-2">
         {today.length === 0 && (
@@ -52,6 +63,46 @@ export function MyDay() {
           </div>
         ))}
       </div>
+    </div>
+  );
+}
+
+/**
+ * What this rep's reports changed.
+ *
+ * Everything above this counts effort — clips, seconds, uploads — and the
+ * clarification prompts cost them more of it. Without something coming back,
+ * a field tool is pure extraction, and reps stop using those in about two
+ * weeks. This is the only part of the app that is about them.
+ */
+function Impact() {
+  const { data } = useQuery({
+    queryKey: ["me-impact"],
+    queryFn: () => api.get<Impact>("/me/impact"),
+    refetchInterval: 120_000,
+  });
+
+  // Nothing has landed yet. A row of zeroes reads like a reprimand, so say
+  // nothing at all until there is something to report.
+  if (!data || data.observations === 0) return null;
+
+  return (
+    <div className="glass px-5 py-4 mb-8">
+      <p className="label mb-3">এই সপ্তাহে তোমার রিপোর্ট</p>
+      <p className="text-sm leading-relaxed bn">
+        <b className="stat-number text-accent">{data.observations}</b> টি তথ্য,{" "}
+        <b className="stat-number text-accent">{data.outletsCovered}</b> টি দোকান থেকে।
+      </p>
+      {data.alertsContributed > 0 && (
+        <p className="text-sm leading-relaxed bn mt-2 pt-2 border-t border-line/40">
+          এর মধ্যে <b className="stat-number text-critical">{data.alertsContributed}</b> টি
+          গুরুত্বপূর্ণ সংকেত তৈরি করেছে
+          {data.alertsActioned > 0 && (
+            <> — অফিস <b className="stat-number text-confident">{data.alertsActioned}</b> টিতে ব্যবস্থা নিয়েছে</>
+          )}
+          ।
+        </p>
+      )}
     </div>
   );
 }

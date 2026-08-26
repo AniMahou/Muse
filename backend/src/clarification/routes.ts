@@ -3,6 +3,7 @@ import { z } from "zod";
 import { AppError, ValidationError } from "@/common/errors";
 import type { Collections } from "@/db/client";
 import type { ClarificationService } from "./service";
+import { repImpact } from "@/alerts/impact";
 import { repAuth } from "@/ingest/auth.middleware";
 
 /**
@@ -29,6 +30,17 @@ export function clarificationRoutes(
     (fn: (req: Request, res: Response) => Promise<void>) =>
     (req: Request, res: Response, next: NextFunction) =>
       fn(req, res).catch(next);
+
+  /**
+   * The rep's own week, in terms of what it changed.
+   *
+   * Deliberately on the rep router, not /admin — the admin routes are gated by
+   * a company admin token a rep does not have and should not be given.
+   */
+  r.get("/me/impact", auth, wrap(async (req, res) => {
+    const { companyId, repId } = rep(req);
+    res.json(await repImpact(collections, companyId, repId, Number(req.query.days ?? 7)));
+  }));
 
   r.get("/clarifications", auth, wrap(async (req, res) => {
     const { companyId, repId } = rep(req);

@@ -40,6 +40,7 @@ export function buildApp(container: Container, uploads: UploadService): Express 
       aliases: container.aliases,
       analytics: container.analytics,
       clarifications: container.clarifications,
+      alerts: container.alerts,
     }),
   );
 

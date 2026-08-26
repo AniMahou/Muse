@@ -1,6 +1,7 @@
 import type { Server as HttpServer } from "node:http";
 import { Server as SocketServer } from "socket.io";
 import type { Observation } from "@shared/observation.schema";
+import type { Alert } from "@shared/alert.schema";
 import { config } from "@/common/config";
 import { logger } from "@/common/logger";
 
@@ -42,6 +43,22 @@ export class RealtimeGateway {
 
   observationUpdated(companyId: string, observation: Observation): void {
     this.io?.to(room(companyId)).emit("observation:updated", observation);
+  }
+
+  /**
+   * A corroborated signal crossed the threshold.
+   *
+   * Separate from observation:created on purpose. Observations are a feed
+   * somebody may scroll; an alert is an interruption that asks for a response,
+   * and a console that renders both the same way would waste the distinction
+   * the alerting rule exists to draw.
+   */
+  alertRaised(companyId: string, alert: Alert): void {
+    this.io?.to(room(companyId)).emit("alert:raised", alert);
+  }
+
+  alertUpdated(companyId: string, alert: Alert): void {
+    this.io?.to(room(companyId)).emit("alert:updated", alert);
   }
 
   async close(): Promise<void> {

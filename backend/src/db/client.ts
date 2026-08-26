@@ -2,6 +2,7 @@ import { MongoClient, type Collection, type Db } from "mongodb";
 import type { Alias, Company, Outlet, Rep, Sku, Territory } from "@shared/catalog";
 import type { Clip, Observation } from "@shared/observation.schema";
 import type { AliasCandidate, Clarification } from "@shared/clarification.schema";
+import type { Alert } from "@shared/alert.schema";
 import type { User } from "@shared/auth.schema";
 import { config } from "@/common/config";
 import { logger } from "@/common/logger";
@@ -29,6 +30,7 @@ export interface Collections {
   observations: Collection<Observation>;
   clarifications: Collection<Clarification>;
   aliasCandidates: Collection<AliasCandidate>;
+  alerts: Collection<Alert>;
   users: Collection<User>;
 }
 
@@ -56,6 +58,7 @@ export function collections(database: Db): Collections {
     observations: database.collection<Observation>("observations"),
     clarifications: database.collection<Clarification>("clarifications"),
     aliasCandidates: database.collection<AliasCandidate>("aliasCandidates"),
+    alerts: database.collection<Alert>("alerts"),
     users: database.collection<User>("users"),
   };
 }
@@ -105,6 +108,17 @@ export async function ensureIndexes(database: Db): Promise<void> {
     // counter rather than piling up duplicates for a reviewer to wade through.
     c.aliasCandidates.createIndex({ companyId: 1, surface: 1 }, { unique: true }),
     c.aliasCandidates.createIndex({ companyId: 1, status: 1, occurrences: -1 }),
+
+    c.alerts.createIndex({ alertId: 1 }, { unique: true }),
+    // The console's default view: open first, newest first.
+    c.alerts.createIndex({ companyId: 1, status: 1, raisedAt: -1 }),
+    // The dedupe lookup, run once per corroborating observation.
+    c.alerts.createIndex({ companyId: 1, kind: 1, key: 1, raisedAt: -1 }),
+
+    // The alert window query filters on type AND the agreed key, which the
+    // existing skuId index cannot serve on its own.
+    c.observations.createIndex({ companyId: 1, type: 1, skuId: 1, recordedAt: -1 }),
+    c.observations.createIndex({ companyId: 1, type: 1, competitorBrand: 1, recordedAt: -1 }),
 
     c.users.createIndex({ userId: 1 }, { unique: true }),
     // Login looks up by email alone, so it must be globally unique — not

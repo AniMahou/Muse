@@ -1,6 +1,7 @@
 import { Navigate, Route, Routes } from "react-router-dom";
 import { Shell } from "./Shell";
 import { Today } from "./Today";
+import { AlertsPage } from "./Alerts";
 import { Intelligence } from "./Intelligence";
 import { Review } from "./Review";
 import { Aliases } from "./Aliases";
@@ -12,6 +13,7 @@ export function Console() {
     <Routes>
       <Route element={<Shell />}>
         <Route index element={<Today />} />
+        <Route path="alerts" element={<AlertsPage />} />
         <Route path="intelligence" element={<Intelligence />} />
         <Route path="review" element={<Review />} />
         <Route path="aliases" element={<Aliases />} />

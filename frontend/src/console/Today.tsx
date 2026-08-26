@@ -6,6 +6,7 @@ import { useAuth } from "@/shared/lib/auth-store";
 import { ConfidenceRing, StatusPill } from "@/shared/ui/Confidence";
 import { connectRealtime, onObservations, disconnectRealtime } from "./lib/socket";
 import { useDirectory, formatDelta } from "./lib/directory";
+import { AlertPanel, ResponseStat } from "./Alerts";
 
 interface Summary {
   observations: number; clipCount: number; activeReps: number;
@@ -51,8 +52,12 @@ export function Today() {
         <Kpi label="Active reps" value={summary?.activeReps ?? 0} />
         <Kpi label="Outlets" value={summary?.outletsCovered ?? 0} />
         <Kpi label="Needs review" value={summary?.needsClarification ?? 0} tone="uncertain" />
-        <Kpi label="High severity" value={summary?.highSeverity ?? 0} tone="critical" />
+        <ResponseStat />
       </div>
+
+      {/* Above the feed, deliberately. What needs a decision outranks what
+          merely happened, and an alert you have to scroll to is not an alert. */}
+      <AlertPanel compact />
 
       <div className="flex items-center gap-2 mb-4">
         <span className="h-2 w-2 rounded-full bg-confident animate-pulse" />
