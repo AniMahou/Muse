@@ -86,74 +86,130 @@ You do **not** need Docker, MongoDB, Redis, or any API key. Nothing you run touc
 
 ## What you are recording
 
-Open **[CARDS.md](CARDS.md)** on your phone. Twenty-five scenarios. You are a distribution
-rep standing in a shop, reporting what you just saw.
+Open **[CARDS.md](CARDS.md)**. Twenty-five scenarios. You are a distribution rep standing
+in a shop, reporting what you just saw.
 
 For each card: read it, understand it, then **say it in your own words**. The Bangla line
 is a suggestion, not a script — read it out flatly and the clip is useless, because read
 speech and spoken speech sound different to a recogniser and spoken speech is what we are
 testing.
 
-### The four rules
+---
 
-**1 · Record on your phone, not a laptop.** The ordinary voice-recorder app is right.
-A phone microphone in a market is the actual deployment condition; a laptop in a bedroom
-is not.
+## Recording
 
-**2 · A third of the clips must be genuinely noisy.** Roughly 13 quiet, 13 moderate,
-14 loud — a real market, traffic, people talking over you.
+Everything happens in the terminal, from the `backend` folder. Nothing else needs to be
+running — no server, no database, no API key.
 
-> This is the one rule that decides whether the whole exercise was worth doing. Our entire
+### Check your microphone first
+
+```bash
+npm run mic -- --devices
+```
+
+That prints the input devices this machine can see. On Windows the first one is used
+automatically; if it picks the wrong one, pass the name:
+
+```bash
+npm run mic -- 1a --device "Microphone (Realtek(R) Audio)"
+```
+
+You can also set it once for the whole session instead of typing it every time —
+PowerShell:
+
+```bash
+$env:MUSE_MIC="Microphone (Realtek(R) Audio)"
+```
+
+Linux or macOS:
+
+```bash
+export MUSE_MIC=default
+```
+
+### Recording clip after clip
+
+```bash
+npm run mic
+```
+
+That starts an interactive loop, which is what you want for a long session:
+
+```
+  clip > 1a
+  press ENTER to start clip-01-a
+  ● RECORDING clip-01-a   — speak now, press ENTER to stop
+  saved clip-01-a  12.4s
+
+  clip > 2a
+```
+
+Type the card number and a take letter — `1a`, `7b`, `16a`. Just `7` means `7a`.
+A blank line ends the session.
+
+**Wait for `● RECORDING` before you speak.** Opening a microphone takes a second or two —
+longer the first time, while the OS initialises the device or asks permission. The tool
+waits until audio is genuinely being captured before it prompts you, so if you start
+talking early those words are gone.
+
+### One clip at a time
+
+```bash
+npm run mic -- 1a
+```
+
+### Recording plan
+
+Record all 25 cards once, then pick 15 and record them **again** with a different speaker
+or in a different noise level. That is 40 clips.
+
+```
+clip-01-a    card 1, first take
+clip-01-b    card 1, again — different speaker or noisier
+```
+
+The tool asks before overwriting, so a mistake costs nothing.
+
+### The five rules
+
+**1 · A third of the clips must be genuinely noisy.** Roughly 13 quiet, 13 moderate,
+14 loud — take the laptop somewhere with traffic, a fan, people talking.
+
+> This is the rule that decides whether the whole exercise was worth doing. Our entire
 > claim is that the transcript comes out badly and the extracted fields come out right
 > anyway. Record 40 quiet clips and the transcript comes out fine, so we will have proved
-> nothing at all.
+> nothing at all. The noisy clips are not a compromise, they are the experiment.
 
-**3 · At least three different speakers, ideally four.** One voice measures one voice.
-Ask friends. They do not need to understand the project — hand them a card.
+**2 · At least three different speakers, ideally four.** One voice measures one voice.
+Ask friends — they do not need to understand the project, just hand them a card.
 
-**4 · Dhaka-standard Bangla only.** A strongly Chittagonian or Sylheti clip is silently
+**3 · Say the card, do not read it.** Same facts, your own words, ordinary speaking pace.
+
+**4 · Say numbers as words.** Where a card says **দেড় ডজন**, say দেড় ডজন — not "eighteen".
+The Bangla quantity grammar is the part being tested, and saying the resolved number
+bypasses exactly the thing we are measuring.
+
+**5 · Dhaka-standard Bangla only.** A strongly Chittagonian or Sylheti clip is silently
 discarded by the evaluation. Label it honestly if it happens, but do not spend a card on it.
-
-### Naming
-
-Name each recording `clip-<card>-<take>`:
-
-```
-clip-01-a     card 1, first take
-clip-01-b     card 1, again — different speaker or different noise
-clip-16-a     card 16
-```
-
-Record all 25 cards once, then pick 15 and record them again with a different speaker or
-noise level. That is 40.
-
-Two digits for the card, always: `clip-07-a`, not `clip-7-a`.
 
 ---
 
-## Getting clips onto the laptop
+## If you recorded on a phone instead
 
-Move the files into one folder — AirDrop, a cable, Google Drive, whatever is easiest — then:
+Sometimes a phone is the only way to get into a genuinely noisy place. That works too —
+name the files `clip-01-a.m4a`, copy them into one folder, and ingest them:
 
 ```bash
-npm run collect -- "C:\\Users\\you\\Desktop\\muse-clips"
+npm run collect -- "C:\Users\you\Desktop\muse-clips"
 ```
-
-On Linux or macOS the path is the ordinary one:
 
 ```bash
 npm run collect -- ~/Desktop/muse-clips
 ```
 
-Quote the path if it contains a space. Run it from the `backend` folder.
-
-That converts each recording to the format the pipeline wants and puts it in
-`datasets/clips/`. Run it as often as you like; clips already ingested are skipped.
-
-It will tell you if a file is named wrongly, or if a clip is under two seconds — which
-usually means the recorder was stopped early and it needs redoing.
-
----
+It converts to the format the pipeline wants and puts them in `datasets/clips/`. Clips
+already ingested are skipped, so it is safe to re-run. It accepts m4a, mp3, wav, 3gp, amr
+and most other things a phone produces.
 
 ## Labelling
 
@@ -233,8 +289,8 @@ ignored. Share the raw recordings through Drive.
 
 ## The order to work in
 
-**Wednesday morning.** Setup, then record **cards 1–5 only**. Ingest them, put the five
-rows in the sheet, run `labels:check`, and **stop there** — tell Tabib. He runs those five
+**Wednesday morning.** Setup, then record **cards 1–5 only** with `npm run mic`. Put the
+five rows in the sheet, run `labels:check`, and **stop there** — tell Tabib. He runs those five
 through the real pipeline first, to be sure the audio format and everything downstream
 works before you spend a day on the other 35. Expect to wait about half an hour.
 
@@ -254,7 +310,10 @@ push. Re-record anything flagged.
 | `ffprobe: command not found` | same install; ffprobe ships with ffmpeg |
 | PowerShell rejects `&&` | run each command on its own line |
 | `skip … name must look like clip-01-a` | rename the file — two digits for the card |
-| `thin — under 2 seconds` | the recorder stopped early, record it again |
+| `thin — under 2 seconds` | you pressed ENTER too fast — record it again |
+| `the microphone did not start` | run `npm run mic -- --devices` and pass `--device "<name>"` |
+| nothing is captured on Linux | try `--device default`, or install `pulseaudio-utils` |
+| first words missing | you spoke before `● RECORDING` appeared |
 | `no audio at datasets/clips/…` | run `npm run collect` again, or check the spelling of `clip_id` |
 | `card_id "N" has no rows in ground-truth.csv` | card numbers are 1–25 |
 | anything else | send the whole terminal output, not a screenshot of part of it |
