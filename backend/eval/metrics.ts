@@ -81,12 +81,32 @@ export type ScoredField = (typeof SCORED_FIELDS)[number];
  *   missed    truth had it, prediction did not
  *   spurious  prediction invented one      ← the other expensive kind
  */
-export function scoreClip(
+/** One truth row and whichever prediction was matched to it, if any. */
+export interface Pairing {
+  truth: ObservationCore;
+  predicted: ObservationCore | undefined;
+}
+
+/**
+ * Match predictions to labelled truth for one clip.
+ *
+ * Greedy on best field agreement rather than on position, because a clip
+ * yields an unordered set and a model listing them in a different order has
+ * not made a mistake.
+ *
+ * Exported because more than one metric needs it. The confidence calibration
+ * previously did its own pairing and compared every prediction against
+ * `truth[0]`, so on any clip carrying more than one observation it scored
+ * predictions against the wrong reference — and multi-observation clips are
+ * exactly the ones the evaluation set over-samples, being the headline claim.
+ * One matcher, used by both, is the only way those two can agree.
+ */
+export function pairObservations(
   predicted: ObservationCore[],
   truth: ObservationCore[],
-): Record<ScoredField, FieldTally> {
-  const tally = emptyTally();
+): { pairs: Pairing[]; unmatched: ObservationCore[] } {
   const used = new Set<number>();
+  const pairs: Pairing[] = [];
 
   for (const t of truth) {
     let bestIdx = -1;
@@ -102,7 +122,20 @@ export function scoreClip(
 
     const p = bestIdx >= 0 ? predicted[bestIdx] : undefined;
     if (p) used.add(bestIdx);
+    pairs.push({ truth: t, predicted: p });
+  }
 
+  return { pairs, unmatched: predicted.filter((_, i) => !used.has(i)) };
+}
+
+export function scoreClip(
+  predicted: ObservationCore[],
+  truth: ObservationCore[],
+): Record<ScoredField, FieldTally> {
+  const tally = emptyTally();
+  const { pairs, unmatched } = pairObservations(predicted, truth);
+
+  for (const { truth: t, predicted: p } of pairs) {
     for (const f of SCORED_FIELDS) {
       const tv = normalise((t as Record<string, unknown>)[f]);
       const pv = p ? normalise((p as Record<string, unknown>)[f]) : null;
@@ -112,13 +145,12 @@ export function scoreClip(
 
   // Predictions that matched no truth row at all: every populated field on
   // them is spurious.
-  predicted.forEach((p, i) => {
-    if (used.has(i)) return;
+  for (const p of unmatched) {
     for (const f of SCORED_FIELDS) {
       const pv = normalise((p as Record<string, unknown>)[f]);
       if (pv !== null) tally[f].spurious++;
     }
-  });
+  }
 
   return tally;
 }

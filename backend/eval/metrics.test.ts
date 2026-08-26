@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import {
-  wer, cer, scoreClip, precisionRecall, mergeTallies,
+  wer, cer, scoreClip, pairObservations, precisionRecall, mergeTallies,
   calibration, gateEffectiveness, SCORED_FIELDS,
 } from "./metrics";
 import type { ObservationCore } from "@shared/observation.schema";
@@ -185,5 +185,46 @@ describe("gateEffectiveness", () => {
 
   it("handles no samples", () => {
     expect(gateEffectiveness([])).toEqual({ flaggedShare: 0, errorsCaught: 0, precisionOfFlag: 0 });
+  });
+});
+
+describe("pairObservations", () => {
+  const o = (over: Partial<ObservationCore>): ObservationCore => ({
+    type: "demand_signal", outletId: "OUT-1182", skuId: null, competitorBrand: null,
+    quantity: null, unit: null, priceDelta: null, severity: "medium", verbatimBn: "",
+    ...over,
+  });
+
+  it("matches on agreement, not on position", () => {
+    // The model listing observations in a different order has not erred.
+    const truth = [
+      o({ type: "demand_signal", skuId: "SKU-404", quantity: 18 }),
+      o({ type: "competitor_promo", competitorBrand: "COMP-WHEEL", priceDelta: -5 }),
+    ];
+    const predicted = [truth[1]!, truth[0]!];
+    const { pairs, unmatched } = pairObservations(predicted, truth);
+    expect(pairs[0]!.predicted).toBe(truth[0]);
+    expect(pairs[1]!.predicted).toBe(truth[1]);
+    expect(unmatched).toHaveLength(0);
+  });
+
+  it("reports a truth row nothing was matched to", () => {
+    const truth = [o({ skuId: "SKU-404" }), o({ skuId: "SKU-501" })];
+    const { pairs } = pairObservations([truth[0]!], truth);
+    expect(pairs[1]!.predicted).toBeUndefined();
+  });
+
+  it("reports predictions matching no truth row", () => {
+    const truth = [o({ skuId: "SKU-404" })];
+    const extra = o({ type: "stock_out", skuId: "SKU-999" });
+    const { unmatched } = pairObservations([truth[0]!, extra], truth);
+    expect(unmatched).toEqual([extra]);
+  });
+
+  it("never matches one prediction to two truth rows", () => {
+    const truth = [o({ skuId: "SKU-404" }), o({ skuId: "SKU-404" })];
+    const { pairs } = pairObservations([o({ skuId: "SKU-404" })], truth);
+    const matched = pairs.filter((p) => p.predicted !== undefined);
+    expect(matched).toHaveLength(1);
   });
 });

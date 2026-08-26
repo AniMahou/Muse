@@ -22,7 +22,7 @@ import { buildContainer } from "@/container";
 import { config } from "@/common/config";
 import { logger } from "@/common/logger";
 import {
-  wer, cer, scoreClip, mergeTallies, precisionRecall,
+  wer, cer, scoreClip, pairObservations, mergeTallies, precisionRecall,
   calibration, gateEffectiveness, SCORED_FIELDS, type ScoredField, type FieldTally,
 } from "./metrics";
 import { renderReport, type EvalReport } from "./report";
@@ -125,14 +125,20 @@ async function main(): Promise<void> {
 
       // Calibration pairs each scored field's confidence with whether it was
       // actually right — the only way to know if the gate means anything.
-      for (const obs of result.observations) {
-        const match = label.observations[0];
+      // Pair against the SAME matcher the field tally uses. Comparing every
+      // prediction to label.observations[0] silently scored the second and
+      // third observations of a clip against the first one's truth, which is
+      // wrong on precisely the multi-observation clips the set over-samples.
+      const { pairs } = pairObservations(result.observations, label.observations);
+      for (const { truth: match, predicted } of pairs) {
+        if (!predicted) continue;
+        const obs = predicted as (typeof result.observations)[number];
         for (const f of SCORED_FIELDS) {
           const conf = obs.fieldConfidence[f];
           if (conf === undefined) continue;
           const correct =
             String((obs as Record<string, unknown>)[f] ?? "") ===
-            String((match as Record<string, unknown> | undefined)?.[f] ?? "");
+            String((match as Record<string, unknown>)[f] ?? "");
           confidenceSamples.push({ confidence: conf, correct });
           gateSamples.push({ flagged: obs.flaggedFields.includes(f), correct });
         }
