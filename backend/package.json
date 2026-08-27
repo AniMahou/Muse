@@ -20,6 +20,7 @@
     "test:cov": "vitest run --coverage",
     "eval": "tsx eval/run.ts",
     "seed:catalog": "tsx scripts/seed-catalog.ts",
+    "demo:reset": "tsx scripts/demo-reset.ts",
     "crib": "tsx scripts/crib.ts",
     "mic": "tsx scripts/mic.ts",
     "collect": "tsx scripts/collect.ts",

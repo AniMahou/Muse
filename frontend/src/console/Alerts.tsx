@@ -134,7 +134,7 @@ function AlertCard({
         )}
       </div>
 
-      <p className="text-base font-medium mb-1">{label}</p>
+      <p className="text-base font-medium text-ink mb-1">{label}</p>
       <p className="text-sm text-ink-soft mb-3">
         {shownOutlets.join(" · ")}{more > 0 && ` · +${more} more`}
       </p>
