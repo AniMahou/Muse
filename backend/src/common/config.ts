@@ -37,6 +37,10 @@ const ConfigSchema = z.object({
   mongoDb: z.string().default("muse"),
   redisUrl: z.string().default("redis://localhost:6380"),
 
+  // Seed the recogniser with the customer's own vocabulary at decode time.
+  // Off switch kept because it is the first thing to isolate when a transcript
+  // regresses after a catalogue import.
+  asrBiasEnabled: bool(true),
   asrProvider: z.enum(["groq", "gemini", "local", "fake"]).default("fake"),
   asrLanguage: z.string().default("bn"),
   groqApiKey: z.string().default(""),
@@ -101,6 +105,7 @@ function read(): Config {
     mongoDb: env.MONGO_DB,
     redisUrl: env.REDIS_URL,
 
+    asrBiasEnabled: env.ASR_BIAS_ENABLED,
     asrProvider: env.ASR_PROVIDER,
     asrLanguage: env.ASR_LANGUAGE,
     groqApiKey: env.GROQ_API_KEY,

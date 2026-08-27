@@ -6,7 +6,8 @@
  * a flaky CI that eventually gets switched off, which is how teams end up
  * shipping quality regressions they cannot see.
  *
- *   npm run eval                 # full set
+ *   npm run eval                 # the dev split, by default
+ *   npm run eval -- --split test # only when reporting a number
  *   npm run eval -- --no-cache   # bypass the stage cache before presenting
  *   npm run eval -- --limit 20
  *
@@ -18,6 +19,7 @@ import path from "node:path";
 import { ClipLabelSchema, type ClipLabel } from "@shared/label.schema";
 import { ProviderError } from "@/common/errors";
 import { mimeForExtension } from "@/common/audio";
+import { loadSplit, bucketOf } from "../scripts/split";
 import { connectMongo, closeMongo } from "@/db/client";
 import { buildContainer } from "@/container";
 import { config } from "@/common/config";
@@ -32,7 +34,11 @@ const DATASETS = path.resolve(process.cwd(), "datasets");
 const REPORT_DIR = path.resolve(process.cwd(), "eval/report");
 const SNAPSHOT_DIR = path.resolve(process.cwd(), "eval/snapshots");
 
-async function loadLabels(limit?: number): Promise<ClipLabel[]> {
+async function loadLabels(
+  limit: number | undefined,
+  wanted: "dev" | "test" | "all",
+): Promise<ClipLabel[]> {
+  const split = await loadSplit();
   const dir = path.join(DATASETS, "labels");
   let files: string[];
   try {
@@ -54,6 +60,10 @@ async function loadLabels(limit?: number): Promise<ClipLabel[]> {
     }
     // v1 targets Dhaka-standard Bangla; dialect clips are labelled but held out.
     if (parsed.data.meta.dialect !== "dhaka") continue;
+    // Defaulting to dev is the safe direction: an accidental full run tells you
+    // less than you hoped, where an accidental test run spends a held-out set
+    // you cannot get back.
+    if (wanted !== "all" && bucketOf(split, parsed.data.clipId) !== wanted) continue;
     out.push(parsed.data);
     if (limit && out.length >= limit) break;
   }
@@ -98,7 +108,17 @@ async function main(): Promise<void> {
   const limitArg = args.indexOf("--limit");
   const limit = limitArg >= 0 ? Number(args[limitArg + 1]) : undefined;
 
-  const labels = await loadLabels(limit);
+  // Defaults to dev. An accidental full run tells you less than you hoped; an
+  // accidental test run spends a held-out set you cannot get back.
+  const splitArg = args.indexOf("--split");
+  const raw = splitArg >= 0 ? (args[splitArg + 1] ?? "dev") : "dev";
+  if (raw !== "dev" && raw !== "test" && raw !== "all") {
+    console.error(`\n  --split must be dev, test or all (got "${raw}")\n`);
+    process.exit(1);
+  }
+  const wanted: "dev" | "test" | "all" = raw;
+
+  const labels = await loadLabels(limit, wanted);
   if (labels.length === 0) {
     console.error(
       `\nNo labelled clips found in ${path.join(DATASETS, "labels")}.\n\n` +
@@ -111,7 +131,11 @@ async function main(): Promise<void> {
   }
 
   const db = await connectMongo();
-  const container = buildContainer(db);
+  // Actually bypass it. The flag used to be parsed, reported in the snapshot as
+  // cacheDisabled, and never applied — so every run after the first replayed
+  // cached transcripts, and any A/B of the recogniser compared a change with
+  // itself while the report claimed the cache had been bypassed.
+  const container = buildContainer(db, noCache ? { cacheEnabled: false } : {});
   const orchestrator = container.buildOrchestrator();
 
   let tally = emptyTally();
@@ -214,6 +238,7 @@ async function main(): Promise<void> {
   const report: EvalReport = {
     ranAt: new Date().toISOString(),
     provider: { asr: `${container.asr.name}/${container.asr.model}`, llm: `${container.llm.name}/${container.llm.model}` },
+    split: wanted,
     clipCount: labels.length,
     noiseMix: countBy(labels.map((l) => l.meta.noise)),
     scoredCount: scored,
@@ -248,7 +273,10 @@ async function main(): Promise<void> {
   // different, smaller set — writing it as the baseline makes the next full
   // run look like a regression against a number that was never comparable.
   // The report is still written; only the baseline is withheld.
-  const complete = failures === 0;
+  // Only the dev set builds a baseline. A snapshot from the held-out set would
+  // invite the next run to be compared against it, which is how a test set gets
+  // tuned against by accident.
+  const complete = failures === 0 && wanted === "dev";
   if (complete) {
     await fs.writeFile(
       path.join(SNAPSHOT_DIR, `${day}.json`),

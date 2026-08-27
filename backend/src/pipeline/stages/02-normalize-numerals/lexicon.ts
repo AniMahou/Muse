@@ -190,3 +190,16 @@ export const ALL_FORMS: readonly string[] = Array.from(LEXICON.keys());
 export const FUZZY_FORMS: readonly string[] = Array.from(LEXICON.entries())
   .filter(([, v]) => v.kind !== "unit")
   .map(([k]) => k);
+
+/**
+ * Canonical quantity words, for decode-time ASR biasing.
+ *
+ * Short, high-frequency, and the place a mis-hearing costs most: দশ arriving as
+ * দাস loses a price change outright, because stage 5 refuses to emit a number
+ * the grammar did not parse. Canonical spellings only — the point is to pull
+ * the decoder TOWARDS these, and seeding it with the corrupted variants the
+ * table also knows would defeat that.
+ */
+export const BIAS_LEXICON: readonly string[] = Array.from(
+  new Set(Array.from(LEXICON.values()).map((e) => e.canonical)),
+);

@@ -112,7 +112,18 @@ export function buildStorage(): IStorage {
     : new LocalStorage(config.storageLocalDir);
 }
 
-export function buildContainer(db: Db): Container {
+/**
+ * Overrides for callers that are not the server.
+ *
+ * The evaluation needs to bypass the stage cache: replaying a cached transcript
+ * makes an A/B of anything upstream of stage 5 silently compare a change against
+ * itself.
+ */
+export interface ContainerOverrides {
+  cacheEnabled?: boolean;
+}
+
+export function buildContainer(db: Db, overrides: ContainerOverrides = {}): Container {
   assertProviderKeys();
 
   const cols = collections(db);
@@ -129,7 +140,10 @@ export function buildContainer(db: Db): Container {
   const buildOrchestrator = (opts: { brands?: string[] } = {}) =>
     new PipelineOrchestrator(
       {
-        transcribe: new TranscribeStage(asr),
+        transcribe: new TranscribeStage(asr, catalog, outlets, {
+          bias: config.asrBiasEnabled,
+          radiusM: config.outletRadiusM,
+        }),
         ocr,
         numerals: new NumeralStage(),
         sku: new SkuResolverStage(catalog, {
@@ -154,7 +168,7 @@ export function buildContainer(db: Db): Container {
         language: config.asrLanguage,
         traceEnabled: config.traceEnabled,
         traceDir: config.traceDir,
-        cacheEnabled: config.stageCacheEnabled,
+        cacheEnabled: overrides.cacheEnabled ?? config.stageCacheEnabled,
         cacheDir: config.stageCacheDir,
         validateStageIo: config.validateStageIo,
         ...(opts.brands ? { brands: opts.brands } : {}),

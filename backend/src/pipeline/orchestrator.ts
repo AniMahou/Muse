@@ -93,7 +93,15 @@ export class PipelineOrchestrator {
 
       const transcript = await this.step(
         stageName,
-        { hash: audioHash, source, language: this.opts.language, mimeType: input.mimeType },
+        // brands is part of the key: biasing changes the transcript, so a clip
+        // cached under one portfolio must not be replayed under another.
+        {
+          hash: audioHash,
+          source,
+          language: this.opts.language,
+          mimeType: input.mimeType,
+          brands: this.opts.brands ?? null,
+        },
         () =>
           usePhoto
             ? this.stages.ocr!.recognise({
@@ -105,9 +113,12 @@ export class PipelineOrchestrator {
             : this.stages.transcribe
                 .run({
                   clipId: input.clipId,
+                  companyId: input.companyId,
                   audio,
                   mimeType: input.mimeType,
+                  geo: input.geo,
                   ...(this.opts.language ? { language: this.opts.language } : {}),
+                  ...(this.opts.brands ? { brands: this.opts.brands } : {}),
                 })
                 .then((r) => r.transcript),
         TranscriptSchema,

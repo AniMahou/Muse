@@ -3,6 +3,7 @@ import type { CalibrationBin } from "./metrics";
 export interface EvalReport {
   ranAt: string;
   provider: { asr: string; llm: string };
+  split?: "dev" | "test" | "all";
   clipCount: number;
   scoredCount: number;
   failures: number;
@@ -34,7 +35,7 @@ export function renderReport(r: EvalReport, prev: EvalReport | null): string {
   L.push(`# Evaluation — ${r.ranAt.slice(0, 10)}`);
   L.push("");
   L.push(`ASR \`${r.provider.asr}\` · LLM \`${r.provider.llm}\``);
-  L.push(`${r.scoredCount}/${r.clipCount} clips scored${r.failures ? `, ${r.failures} failed` : ""}${r.cacheDisabled ? " · cache bypassed" : ""}`);
+  L.push(`split \`${r.split ?? "all"}\` · ${r.scoredCount}/${r.clipCount} clips scored${r.failures ? `, ${r.failures} failed` : ""}${r.cacheDisabled ? " · cache bypassed" : ""}`);
   L.push("");
 
   // Say what is missing, in the report itself. A reader who does not know the

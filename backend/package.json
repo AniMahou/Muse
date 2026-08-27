@@ -26,6 +26,7 @@
     "collect": "tsx scripts/collect.ts",
     "clips": "tsx scripts/clips-audit.ts",
     "labels:build": "tsx scripts/labels-build.ts",
+    "split": "tsx scripts/split.ts",
     "labels:scaffold": "tsx scripts/labels-build.ts --scaffold",
     "transcribe": "tsx scripts/transcribe.ts",
     "labels:check": "tsx scripts/labels-build.ts --check",

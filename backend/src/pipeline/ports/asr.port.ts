@@ -6,6 +6,21 @@ export interface AsrRequest {
   mimeType: string;
   /** ISO 639-1. Forcing it materially beats auto-detection for Bangla. */
   language?: string;
+  /**
+   * Decode-time vocabulary bias — the customer's brands, products and outlets.
+   *
+   * Whisper's decoder is autoregressive and conditions on a prompt prefix, so
+   * seeding it with the words that are about to be said raises their token
+   * probabilities. This matters more here than in general transcription: our
+   * errors are concentrated in PROPER NOUNS — brand and shop names no general
+   * acoustic model has been trained on — while the surrounding grammar comes
+   * back fine. Biasing attacks exactly that failure and nothing else.
+   *
+   * It is a bias, not a constraint. The model may still emit anything; the
+   * guarantee that an unresolvable product cannot reach the database lives in
+   * stage 5's per-clip enum, not here.
+   */
+  biasTerms?: string[];
 }
 
 /**

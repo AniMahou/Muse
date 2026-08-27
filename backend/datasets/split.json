@@ -1,0 +1,28 @@
+{
+  "createdAt": "2026-08-27T14:00:44.991Z",
+  "test": [
+    "02",
+    "03",
+    "04",
+    "08",
+    "13",
+    "19"
+  ],
+  "dev": [
+    "01",
+    "05",
+    "06",
+    "07",
+    "09",
+    "10",
+    "11",
+    "12",
+    "14",
+    "15",
+    "16",
+    "17",
+    "18",
+    "20"
+  ],
+  "note": "Frozen held-out set. Assigned by card, so two takes of one sentence cannot straddle the split. Do not evaluate against `test` while iterating, and do not redraw it — a set you have tuned against is not held out."
+}

@@ -38,6 +38,39 @@ interface GroqVerboseResponse {
  * per-word figure. See confidence.ts for the mapping and why it is written
  * down rather than assumed.
  */
+/**
+ * Pack catalogue terms into a prompt the decoder can actually use.
+ *
+ * Comma-separated rather than a sentence: Whisper treats the prompt as prior
+ * context, and a fluent sentence biases the STYLE of the output as well as its
+ * vocabulary, which is not what we want. A bare list biases vocabulary alone.
+ */
+export function buildBiasPrompt(terms: string[] | undefined, maxBytes = 860): string | null {
+  if (!terms || terms.length === 0) return null;
+
+  const seen = new Set<string>();
+  const out: string[] = [];
+  let bytes = 0;
+
+  for (const raw of terms) {
+    const t = raw.trim();
+    if (!t || seen.has(t.toLowerCase())) continue;
+    seen.add(t.toLowerCase());
+
+    // Budgeted in UTF-8 BYTES, which is what the API counts — and the two part
+    // company badly here. Bengali sits in the 3-byte range, so a list that
+    // measures 525 JavaScript characters is 1123 bytes on the wire. Counting
+    // characters sailed past a 896-byte limit and every request 400'd, which is
+    // a failure mode that simply does not appear while the vocabulary is Latin.
+    const cost = Buffer.byteLength(t, "utf8") + 2;
+    if (bytes + cost > maxBytes) break;
+    out.push(t);
+    bytes += cost;
+  }
+
+  return out.length ? out.join(", ") : null;
+}
+
 export class GroqAsrProvider implements IAsrProvider {
   readonly name = "groq";
 
@@ -68,6 +101,13 @@ export class GroqAsrProvider implements IAsrProvider {
     form.append("timestamp_granularities[]", "segment");
     // Forcing the language materially beats auto-detection for Bangla.
     if (req.language) form.append("language", req.language);
+
+    // Whisper conditions its decoder on this prefix, which lifts the token
+    // probabilities of the words in it. Capped at ~220 tokens because the API
+    // truncates a long prompt from the FRONT — an over-long list would silently
+    // drop the terms at its head rather than erroring.
+    const bias = buildBiasPrompt(req.biasTerms);
+    if (bias) form.append("prompt", bias);
 
     const res = await this.post(form);
     return this.toTranscript(res, req);

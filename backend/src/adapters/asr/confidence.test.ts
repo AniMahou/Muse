@@ -1,5 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { segmentConfidence, OPAQUE_PROVIDER_CONFIDENCE } from "./confidence";
+import { buildBiasPrompt } from "./groq.adapter";
 
 describe("segmentConfidence", () => {
   it("maps avg_logprob through exp", () => {
@@ -47,5 +48,45 @@ describe("segmentConfidence", () => {
     // safe; low would flag every field.
     expect(OPAQUE_PROVIDER_CONFIDENCE).toBeGreaterThan(0.5);
     expect(OPAQUE_PROVIDER_CONFIDENCE).toBeLessThan(0.85);
+  });
+});
+
+describe("buildBiasPrompt", () => {
+  it("is null when there is nothing to bias towards", () => {
+    expect(buildBiasPrompt(undefined)).toBeNull();
+    expect(buildBiasPrompt([])).toBeNull();
+    expect(buildBiasPrompt(["  ", ""])).toBeNull();
+  });
+
+  it("joins terms as a bare list, not a sentence", () => {
+    // A fluent sentence would bias the STYLE of the output as well as its
+    // vocabulary, which is not what a vocabulary hint is for.
+    expect(buildBiasPrompt(["Bijoy Store", "PRAN Mango Juice"]))
+      .toBe("Bijoy Store, PRAN Mango Juice");
+  });
+
+  it("drops duplicates case-insensitively", () => {
+    expect(buildBiasPrompt(["PRAN", "pran", "Lux"])).toBe("PRAN, Lux");
+  });
+
+  it("truncates from the END, keeping the terms offered first", () => {
+    // The caller orders by value, so a budget overflow must drop the tail.
+    const out = buildBiasPrompt(["AAAA", "BBBB", "CCCC"], 12)!;
+    expect(out.startsWith("AAAA")).toBe(true);
+    expect(out).not.toContain("CCCC");
+  });
+
+  it("budgets in UTF-8 bytes, not characters", () => {
+    // Bengali is 3 bytes per character. Counting characters overshot the API's
+    // byte limit by roughly 3x and every request came back 400 — invisible for
+    // as long as the vocabulary stays Latin.
+    const bn = "প্রাণ";
+    const out = buildBiasPrompt([bn, bn + "x", bn + "y"], 40)!;
+    expect(Buffer.byteLength(out, "utf8")).toBeLessThanOrEqual(40);
+  });
+
+  it("never exceeds Groq's limit on a realistic Bangla catalogue", () => {
+    const terms = Array.from({ length: 200 }, (_, i) => `প্রাণ ম্যাঙ্গো জুস ${i}`);
+    expect(Buffer.byteLength(buildBiasPrompt(terms)!, "utf8")).toBeLessThanOrEqual(896);
   });
 });
