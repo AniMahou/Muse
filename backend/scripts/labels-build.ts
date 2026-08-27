@@ -39,7 +39,7 @@ const RAW = path.resolve(process.cwd(), "datasets/raw");
 const CLIPS = path.resolve(process.cwd(), "datasets/clips");
 const LABELS = path.resolve(process.cwd(), "datasets/labels");
 
-const NOISE = new Set(["quiet", "moderate", "loud"]);
+const NOISE = new Set(["quiet", "moderate", "loud", "unknown"]);
 const DIALECT = new Set(["dhaka", "chittagong", "sylhet", "other"]);
 const CLIP_NAME = /^clip-\d{2}-[a-z]$/;
 
@@ -212,17 +212,20 @@ async function main(): Promise<void> {
     seen.add(clipId);
 
     if (!byCard.has(card)) { fail(at, `card_id "${card}" has no rows in ground-truth.csv`); continue; }
-    if (!transcriptBn) { fail(at, "transcript_bn is empty — write what was actually said"); continue; }
+    // Not fatal. Only the word error rate needs it; field accuracy is scored
+    // against the scenario's expected observations either way.
+    if (!transcriptBn) warn(at, "transcript_bn is empty — this clip is excluded from the word error rate");
 
     const audioFile = `${clipId}.wav`;
     const hasAudio = await fs.access(path.join(CLIPS, audioFile)).then(() => true, () => false);
     if (!hasAudio) fail(at, `no audio at datasets/clips/${audioFile} — record it with npm run mic, or ingest it with npm run collect`);
 
-    const noise = (r.noise ?? "").trim();
-    // Not defaulted. The noise mix is the experiment; inventing it would
-    // fabricate the one variable the evaluation exists to vary.
-    if (noise === "") fail(at, "noise is empty — write quiet, moderate or loud");
-    else if (!NOISE.has(noise)) fail(at, `noise "${noise}" must be quiet, moderate or loud`);
+    // Recorded as "unknown" rather than guessed. The noise mix is the
+    // experiment; inventing it would fabricate the one variable the evaluation
+    // exists to vary, so unknown clips drop out of the breakdown instead.
+    const noise = (r.noise ?? "").trim() || "unknown";
+    if (!NOISE.has(noise)) fail(at, `noise "${noise}" must be quiet, moderate or loud`);
+    else if (noise === "unknown") warn(at, "noise is empty — excluded from the accuracy-by-noise breakdown");
 
     if ((r.speaker ?? "").trim() === "") warn(at, "speaker is empty — the distinct-speaker count needs it");
 

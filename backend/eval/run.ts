@@ -16,6 +16,7 @@
 import { promises as fs } from "node:fs";
 import path from "node:path";
 import { ClipLabelSchema, type ClipLabel } from "@shared/label.schema";
+import { ProviderError } from "@/common/errors";
 import { mimeForExtension } from "@/common/audio";
 import { connectMongo, closeMongo } from "@/db/client";
 import { buildContainer } from "@/container";
@@ -59,6 +60,38 @@ async function loadLabels(limit?: number): Promise<ClipLabel[]> {
   return out;
 }
 
+/**
+ * Run one clip, waiting out rate limits rather than recording them as failures.
+ *
+ * In production BullMQ owns retries; the evaluation has no such layer, so a
+ * free-tier tokens-per-minute ceiling turned into "17 of 20 clips FAILED" and
+ * a field-accuracy figure computed from whatever survived. That is the worst
+ * possible failure mode for a measurement: it still produces a number.
+ *
+ * Groq states the wait in its own error ("Please try again in 9.62s"), which
+ * is better than any backoff we could guess, so honour it when present. This
+ * also paces the whole run automatically — no fixed sleep that would be too
+ * slow when the limit is not being hit.
+ */
+async function withRetry<T>(fn: () => Promise<T>, attempts = 6): Promise<T> {
+  let lastErr: unknown;
+  for (let i = 0; i < attempts; i++) {
+    try {
+      return await fn();
+    } catch (err) {
+      lastErr = err;
+      if (!(err instanceof ProviderError) || !err.retryable) throw err;
+      const suggested = /try again in ([\d.]+)s/i.exec(err.message);
+      const waitMs = suggested
+        ? Math.ceil(Number(suggested[1]) * 1000) + 500
+        : Math.min(30_000, 2_000 * 2 ** i);
+      process.stdout.write(`rate limited, waiting ${(waitMs / 1000).toFixed(1)}s ... `);
+      await new Promise((r) => setTimeout(r, waitMs));
+    }
+  }
+  throw lastErr;
+}
+
 async function main(): Promise<void> {
   const args = process.argv.slice(2);
   const noCache = args.includes("--no-cache");
@@ -84,6 +117,12 @@ async function main(): Promise<void> {
   let tally = emptyTally();
   let werSum = 0;
   let cerSum = 0;
+  // Word error rate needs a human reference; field accuracy does not, because
+  // it scores against the scenario's expected observations. Clips with no
+  // transcript are still fully scored on the metric that matters, and simply
+  // drop out of this average — counted separately so the report can say so
+  // rather than quietly dividing by the wrong denominator.
+  let werScored = 0;
   const confidenceSamples: Array<{ confidence: number; correct: boolean }> = [];
   const gateSamples: Array<{ flagged: boolean; correct: boolean }> = [];
   const perClip: EvalReport["clips"] = [];
@@ -103,7 +142,7 @@ async function main(): Promise<void> {
     }
 
     try {
-      const result = await orchestrator.run({
+      const result = await withRetry(() => orchestrator.run({
         clipId: label.clipId,
         companyId: process.env.EVAL_COMPANY_ID ?? "demo-fmcg",
         repId: "EVAL",
@@ -113,12 +152,16 @@ async function main(): Promise<void> {
         geo: label.geo,
         declaredOutletId: null,
         recordedAt: new Date().toISOString(),
-      });
+      }));
 
-      const clipWer = wer(label.transcriptBn, result.transcript.text);
-      const clipCer = cer(label.transcriptBn, result.transcript.text);
-      werSum += clipWer;
-      cerSum += clipCer;
+      const hasReference = label.transcriptBn.trim().length > 0;
+      const clipWer = hasReference ? wer(label.transcriptBn, result.transcript.text) : null;
+      const clipCer = hasReference ? cer(label.transcriptBn, result.transcript.text) : null;
+      if (clipWer !== null && clipCer !== null) {
+        werSum += clipWer;
+        cerSum += clipCer;
+        werScored++;
+      }
 
       const clipTally = scoreClip(result.observations, label.observations);
       tally = mergeTallies(tally, clipTally);
@@ -146,14 +189,17 @@ async function main(): Promise<void> {
 
       perClip.push({
         clipId: label.clipId,
-        wer: round(clipWer),
-        cer: round(clipCer),
+        wer: clipWer === null ? null : round(clipWer),
+        cer: clipCer === null ? null : round(clipCer),
         predicted: result.observations.length,
         expected: label.observations.length,
         flagged: result.observations.filter((o) => o.flaggedFields.length > 0).length,
       });
 
-      console.log(`WER ${(clipWer * 100).toFixed(1)}%  obs ${result.observations.length}/${label.observations.length}`);
+      console.log(
+        `${clipWer === null ? "WER   —  " : `WER ${(clipWer * 100).toFixed(1).padStart(5)}%`}` +
+          `  obs ${result.observations.length}/${label.observations.length}`,
+      );
     } catch (err) {
       failures++;
       console.log(`FAILED: ${err instanceof Error ? err.message : String(err)}`);
@@ -169,12 +215,14 @@ async function main(): Promise<void> {
     ranAt: new Date().toISOString(),
     provider: { asr: `${container.asr.name}/${container.asr.model}`, llm: `${container.llm.name}/${container.llm.model}` },
     clipCount: labels.length,
+    noiseMix: countBy(labels.map((l) => l.meta.noise)),
     scoredCount: scored,
     failures,
     cacheDisabled: noCache,
     transcription: {
-      wer: round(scored === 0 ? 0 : werSum / scored),
-      cer: round(scored === 0 ? 0 : cerSum / scored),
+      wer: werScored === 0 ? null : round(werSum / werScored),
+      cer: werScored === 0 ? null : round(cerSum / werScored),
+      scoredCount: werScored,
     },
     fields,
     overallFieldAccuracy: round(overallAccuracy(tally)),
@@ -189,22 +237,37 @@ async function main(): Promise<void> {
   const previous = await loadLatestSnapshot();
   const day = report.ranAt.slice(0, 10);
   await fs.writeFile(path.join(REPORT_DIR, `${day}.md`), renderReport(report, previous), "utf8");
-  await fs.writeFile(
-    path.join(SNAPSHOT_DIR, `${day}.json`),
-    JSON.stringify(report, null, 2),
-    "utf8",
-  );
+
+  // A run that lost clips to rate limits or provider errors measured a
+  // different, smaller set — writing it as the baseline makes the next full
+  // run look like a regression against a number that was never comparable.
+  // The report is still written; only the baseline is withheld.
+  const complete = failures === 0;
+  if (complete) {
+    await fs.writeFile(
+      path.join(SNAPSHOT_DIR, `${day}.json`),
+      JSON.stringify(report, null, 2),
+      "utf8",
+    );
+  } else {
+    console.log(
+      `\n  ${failures} clip(s) failed — report written, but NOT saved as the baseline.`,
+    );
+  }
 
   console.log("\n" + renderReport(report, previous));
   console.log(`\n  report:   eval/report/${day}.md`);
-  console.log(`  snapshot: eval/snapshots/${day}.json`);
+  if (complete) console.log(`  snapshot: eval/snapshots/${day}.json`);
 
   await container.close();
   await closeMongo();
 
   // Regression gate: a drop of more than 2 points in overall field accuracy
   // fails the run, so a prompt change cannot quietly make things worse.
-  if (previous && report.overallFieldAccuracy < previous.overallFieldAccuracy - 0.02) {
+  // Only compare against a baseline drawn from a comparable set. Twenty clips
+  // against a previous three is not a regression, it is a different question.
+  const comparable = previous !== null && previous.scoredCount >= report.scoredCount * 0.9;
+  if (comparable && previous && report.overallFieldAccuracy < previous.overallFieldAccuracy - 0.02) {
     console.error(
       `\n  REGRESSION: field accuracy ${previous.overallFieldAccuracy} -> ${report.overallFieldAccuracy}\n`,
     );
@@ -237,6 +300,12 @@ function overallAccuracy(t: Record<ScoredField, FieldTally>): number {
     total += t[f].correct + t[f].wrong + t[f].missed + t[f].spurious;
   }
   return total === 0 ? 0 : correct / total;
+}
+
+function countBy(values: string[]): Record<string, number> {
+  const out: Record<string, number> = {};
+  for (const v of values) out[v] = (out[v] ?? 0) + 1;
+  return out;
 }
 
 function round(n: number, dp = 4): number {

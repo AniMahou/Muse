@@ -7,7 +7,8 @@ export interface EvalReport {
   scoredCount: number;
   failures: number;
   cacheDisabled: boolean;
-  transcription: { wer: number; cer: number };
+  transcription: { wer: number | null; cer: number | null; scoredCount: number };
+  noiseMix?: Record<string, number>;
   fields: Record<
     string,
     { correct: number; wrong: number; missed: number; spurious: number;
@@ -16,12 +17,12 @@ export interface EvalReport {
   overallFieldAccuracy: number;
   calibration: { bins: CalibrationBin[]; ece: number; brier: number };
   gate: { flaggedShare: number; errorsCaught: number; precisionOfFlag: number };
-  clips: Array<{ clipId: string; wer: number; cer: number; predicted: number; expected: number; flagged: number }>;
+  clips: Array<{ clipId: string; wer: number | null; cer: number | null; predicted: number; expected: number; flagged: number }>;
 }
 
-const pct = (n: number) => `${(n * 100).toFixed(1)}%`;
-const delta = (now: number, before?: number) => {
-  if (before === undefined) return "";
+const pct = (n: number | null) => (n === null ? "—" : `${(n * 100).toFixed(1)}%`);
+const delta = (now: number | null, before?: number | null) => {
+  if (now === null || before === undefined || before === null) return "";
   const d = now - before;
   if (Math.abs(d) < 0.0005) return " (=)";
   return d > 0 ? ` (+${(d * 100).toFixed(1)})` : ` (${(d * 100).toFixed(1)})`;
@@ -36,13 +37,34 @@ export function renderReport(r: EvalReport, prev: EvalReport | null): string {
   L.push(`${r.scoredCount}/${r.clipCount} clips scored${r.failures ? `, ${r.failures} failed` : ""}${r.cacheDisabled ? " · cache bypassed" : ""}`);
   L.push("");
 
+  // Say what is missing, in the report itself. A reader who does not know the
+  // word error rate was never measured will read a dash as a zero.
+  if (r.transcription.wer === null) {
+    L.push("> **Word error rate not measured.** No clip in this set carries a human");
+    L.push("> reference transcript, so there is nothing to compare the recogniser against.");
+    L.push("> Field accuracy below is unaffected — it is scored against the expected");
+    L.push("> observations, not against the transcript.");
+    L.push("");
+  } else if (r.transcription.scoredCount < r.scoredCount) {
+    L.push(`> Word error rate covers ${r.transcription.scoredCount} of ${r.scoredCount} scored clips —`);
+    L.push("> the rest have no human reference transcript.");
+    L.push("");
+  }
+
   L.push("## The headline");
   L.push("");
   L.push("| | |");
   L.push("|---|---|");
-  L.push(`| **Word error rate** | **${pct(r.transcription.wer)}**${delta(r.transcription.wer, prev?.transcription.wer)} |`);
+  const werCell = r.transcription.wer === null
+    ? "**not measured**"
+    : `**${pct(r.transcription.wer)}**${delta(r.transcription.wer, prev?.transcription.wer)}`;
+  L.push(`| **Word error rate** | ${werCell} |`);
   L.push(`| **Field accuracy** | **${pct(r.overallFieldAccuracy)}**${delta(r.overallFieldAccuracy, prev?.overallFieldAccuracy)} |`);
   L.push(`| Character error rate | ${pct(r.transcription.cer)} |`);
+  if (r.noiseMix) {
+    const parts = Object.entries(r.noiseMix).map(([k, v]) => `${k} ${v}`).join(" · ");
+    L.push(`| Recording conditions | ${parts} |`);
+  }
   L.push("");
   L.push(
     "The gap between those first two numbers is the entire argument. The " +
