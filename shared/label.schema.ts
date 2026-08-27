@@ -46,6 +46,17 @@ export const ClipLabelSchema = z.object({
     noise: z.enum(["quiet", "moderate", "loud", "unknown"]).default("unknown"),
     speakerId: z.string().optional(),
     durationSec: z.number().optional(),
+    /**
+     * How the reference transcript was obtained.
+     *
+     * "heard" — somebody listened and typed what was said. The real thing.
+     * "script" — the speaker read a prepared line and that line was reused as
+     *   the reference. Cheap, and biased in OUR favour: any word the speaker
+     *   fumbled or paraphrased is scored as a recogniser error, so the word
+     *   error rate comes out too high. It must be reported separately and
+     *   never quoted as though somebody had transcribed the audio.
+     */
+    referenceSource: z.enum(["heard", "script"]).default("heard"),
     labelledBy: z.string().optional(),
     labelledAt: z.string().optional(),
     /** Promoted from a production correction rather than originally collected. */

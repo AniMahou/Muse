@@ -119,10 +119,10 @@ async function scaffold(): Promise<void> {
     return;
   }
 
-  const header = "clip_id,card_id,transcript_bn,speaker,noise,dialect,notes";
+  const header = "clip_id,card_id,transcript_bn,speaker,noise,dialect,reference,notes";
   const body = existing.trim() === "" ? header + "\n" : existing.replace(/\n*$/, "\n");
   const added = audio
-    .map((id) => `${id},${Number(/^clip-(\d{2})/.exec(id)![1])},,,,dhaka,`)
+    .map((id) => `${id},${Number(/^clip-(\d{2})/.exec(id)![1])},,,,dhaka,,`)
     .join("\n");
 
   await fs.writeFile(file, body + added + "\n", "utf8");
@@ -247,6 +247,7 @@ async function main(): Promise<void> {
       meta: {
         dialect,
         noise,
+        referenceSource: (r.reference ?? "").trim() === "script" ? "script" : "heard",
         speakerId: (r.speaker ?? "").trim() || undefined,
         labelledBy: "muse-team",
         labelledAt: new Date().toISOString(),

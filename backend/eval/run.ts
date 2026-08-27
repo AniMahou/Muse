@@ -223,6 +223,12 @@ async function main(): Promise<void> {
       wer: werScored === 0 ? null : round(werSum / werScored),
       cer: werScored === 0 ? null : round(cerSum / werScored),
       scoredCount: werScored,
+      // How many of those references were the script the speaker read rather
+      // than an independent transcription. Reported because the two are not
+      // the same measurement.
+      scriptDerived: labels.filter(
+        (l) => l.meta.referenceSource === "script" && l.transcriptBn.trim() !== "",
+      ).length,
     },
     fields,
     overallFieldAccuracy: round(overallAccuracy(tally)),

@@ -1,8 +1,9 @@
 /**
  * Play each clip and type what you hear, straight into clips.csv.
  *
- *   npm run transcribe            every clip still missing a transcript
- *   npm run transcribe -- 7       just clip-07-a
+ *   npm run transcribe               every clip still missing a transcript
+ *   npm run transcribe -- 7          just clip-07-a
+ *   npm run transcribe -- --from-cards   reuse the scripted line as the reference
  *
  * The transcript is the reference the word error rate is measured against, and
  * it is the only part of a label a machine cannot produce. Everything else in
@@ -51,6 +52,34 @@ function csvField(v: string): string {
   return /[",\n]/.test(v) ? `"${v.replace(/"/g, '""')}"` : v;
 }
 
+const CARDS = path.resolve(process.cwd(), "../docs/CARDS.md");
+
+/**
+ * Reuse each card's scripted line as the reference transcript.
+ *
+ * Only honest when the speaker read the cards verbatim rather than
+ * paraphrasing them, and even then it is second best. The bias runs in OUR
+ * favour, which is why it is worth stating plainly: every word the speaker
+ * fumbled, skipped or said differently is scored as a recogniser error, so the
+ * word error rate this produces is an OVER-estimate. A metric that flatters
+ * the thing being measured is the one kind nobody in the room will forgive.
+ *
+ * So the rows are marked reference=script, the evaluation reports them
+ * separately, and the honest move is still to listen to a handful and check
+ * that the speaker really did say what the card told them to.
+ */
+async function readCards(): Promise<Map<number, string>> {
+  const text = await fs.readFile(CARDS, "utf8").catch(() => "");
+  const out = new Map<number, string>();
+  const sections = text.split(/^### Card /m).slice(1);
+  for (const sec of sections) {
+    const num = Number(/^(\d+)/.exec(sec)?.[1]);
+    const quote = /^> (.+)$/m.exec(sec)?.[1];
+    if (Number.isFinite(num) && quote) out.set(num, quote.trim());
+  }
+  return out;
+}
+
 async function main(): Promise<void> {
   try {
     await exec("ffplay", ["-version"]);
@@ -60,6 +89,7 @@ async function main(): Promise<void> {
     process.exit(1);
   }
 
+  const fromCards = process.argv.includes("--from-cards");
   const only = process.argv.slice(2).find((a) => !a.startsWith("--"));
   const text = await fs.readFile(CSV, "utf8").catch(() => "");
   const { headers, rows } = parseCsv(text);
@@ -76,6 +106,32 @@ async function main(): Promise<void> {
 
   if (targets.length === 0) {
     console.log(c.green(`\n  Every row already has a transcript.\n`));
+    return;
+  }
+
+  if (fromCards) {
+    const cards = await readCards();
+    if (cards.size === 0) {
+      console.error(c.yellow(`\n  Could not read ${CARDS}\n`));
+      process.exit(1);
+    }
+    let filled = 0;
+    for (const row of targets) {
+      const card = Number((row.card_id ?? "").trim());
+      const line = cards.get(card);
+      if (!line) continue;
+      row.transcript_bn = line;
+      row.reference = "script";
+      if ((row.speaker ?? "").trim() === "") row.speaker = "reader";
+      filled++;
+    }
+    await save(headers, rows);
+    console.log(`\n  ${c.green("+")} filled ${c.bold(String(filled))} transcript(s) from the cards, marked ${c.bold("reference=script")}`);
+    console.log(c.yellow(`\n  This OVER-estimates the word error rate.`));
+    console.log(c.dim(`  Anything the speaker fumbled or paraphrased is counted as a recogniser`));
+    console.log(c.dim(`  error, and the bias runs in our favour — which is the kind that gets`));
+    console.log(c.dim(`  noticed. Listen to a few and check the speaker really said the line:`));
+    console.log(c.dim(`\n    npm run transcribe -- 3\n`));
     return;
   }
 
@@ -105,6 +161,7 @@ async function main(): Promise<void> {
         if (answer === "q") { await save(headers, rows); console.log(c.green(`\n  Saved ${done} transcript(s).\n`)); return; }
 
         row.transcript_bn = answer;
+        row.reference = "heard";
         if ((row.speaker ?? "").trim() === "") {
           row.speaker = (await rl.question(`  ${c.dim("speaker")} › `)).trim() || "unknown";
         }

@@ -7,7 +7,7 @@ export interface EvalReport {
   scoredCount: number;
   failures: number;
   cacheDisabled: boolean;
-  transcription: { wer: number | null; cer: number | null; scoredCount: number };
+  transcription: { wer: number | null; cer: number | null; scoredCount: number; scriptDerived?: number };
   noiseMix?: Record<string, number>;
   fields: Record<
     string,
@@ -45,6 +45,12 @@ export function renderReport(r: EvalReport, prev: EvalReport | null): string {
     L.push("> Field accuracy below is unaffected — it is scored against the expected");
     L.push("> observations, not against the transcript.");
     L.push("");
+  } else if ((r.transcription.scriptDerived ?? 0) >= r.transcription.scoredCount) {
+    L.push("> **The word error rate below is an over-estimate, and should be quoted as one.**");
+    L.push("> Its reference is the line the speaker was given to read, not an independent");
+    L.push("> transcription of what they actually said — so every fumble and paraphrase is");
+    L.push("> counted as a recogniser error. The true rate is lower than this figure.");
+    L.push("");
   } else if (r.transcription.scoredCount < r.scoredCount) {
     L.push(`> Word error rate covers ${r.transcription.scoredCount} of ${r.scoredCount} scored clips —`);
     L.push("> the rest have no human reference transcript.");
@@ -61,6 +67,9 @@ export function renderReport(r: EvalReport, prev: EvalReport | null): string {
   L.push(`| **Word error rate** | ${werCell} |`);
   L.push(`| **Field accuracy** | **${pct(r.overallFieldAccuracy)}**${delta(r.overallFieldAccuracy, prev?.overallFieldAccuracy)} |`);
   L.push(`| Character error rate | ${pct(r.transcription.cer)} |`);
+  if (r.transcription.scriptDerived) {
+    L.push(`| WER reference | ${r.transcription.scriptDerived} of ${r.transcription.scoredCount} from the read script |`);
+  }
   if (r.noiseMix) {
     const parts = Object.entries(r.noiseMix).map(([k, v]) => `${k} ${v}`).join(" · ");
     L.push(`| Recording conditions | ${parts} |`);
