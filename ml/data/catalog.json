@@ -1,0 +1,115 @@
+{
+  "companyId": "demo-fmcg",
+  "exportedAt": "2026-08-27T15:11:32.803Z",
+  "skus": [
+    {
+      "skuId": "SKU-404",
+      "name": "PRAN Mango Juice",
+      "brand": "PRAN",
+      "pack": "250ml",
+      "isCompetitor": false
+    },
+    {
+      "skuId": "SKU-407",
+      "name": "PRAN Mango Drink",
+      "brand": "PRAN",
+      "pack": "1L",
+      "isCompetitor": false
+    },
+    {
+      "skuId": "SKU-410",
+      "name": "PRAN Litchi Juice",
+      "brand": "PRAN",
+      "pack": "250ml",
+      "isCompetitor": false
+    },
+    {
+      "skuId": "SKU-420",
+      "name": "PRAN Chanachur",
+      "brand": "PRAN",
+      "pack": "150g",
+      "isCompetitor": false
+    },
+    {
+      "skuId": "SKU-501",
+      "name": "Surf Excel Powder",
+      "brand": "Surf Excel",
+      "pack": "500g",
+      "isCompetitor": false
+    },
+    {
+      "skuId": "SKU-502",
+      "name": "Lux Soap",
+      "brand": "Lux",
+      "pack": "100g",
+      "isCompetitor": false
+    },
+    {
+      "skuId": "SKU-504",
+      "name": "Sunsilk Shampoo",
+      "brand": "Sunsilk",
+      "pack": "180ml",
+      "isCompetitor": false
+    },
+    {
+      "skuId": "SKU-505",
+      "name": "Clear Shampoo",
+      "brand": "Clear",
+      "pack": "180ml",
+      "isCompetitor": false
+    },
+    {
+      "skuId": "SKU-503",
+      "name": "Harpic Toilet Cleaner",
+      "brand": "Harpic",
+      "pack": "500ml",
+      "isCompetitor": false
+    },
+    {
+      "skuId": "SKU-601",
+      "name": "Colgate Toothpaste",
+      "brand": "Colgate",
+      "pack": "100g",
+      "isCompetitor": false
+    },
+    {
+      "skuId": "COMP-WHEEL",
+      "name": "Wheel",
+      "brand": "Wheel",
+      "pack": null,
+      "isCompetitor": true
+    },
+    {
+      "skuId": "COMP-WHITEPLUS",
+      "name": "White Plus",
+      "brand": "White Plus",
+      "pack": null,
+      "isCompetitor": true
+    },
+    {
+      "skuId": "COMP-RIN",
+      "name": "Rin Powder",
+      "brand": "Rin",
+      "pack": null,
+      "isCompetitor": true
+    }
+  ],
+  "outlets": [
+    {
+      "outletId": "OUT-1182",
+      "name": "Bijoy Store"
+    },
+    {
+      "outletId": "OUT-1183",
+      "name": "Rahman Store"
+    },
+    {
+      "outletId": "OUT-1184",
+      "name": "New Alam Enterprise"
+    },
+    {
+      "outletId": "OUT-1185",
+      "name": "Shanto General Store"
+    }
+  ]
+}

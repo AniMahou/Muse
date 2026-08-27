@@ -1,0 +1,9 @@
+.venv/
+__pycache__/
+*.pyc
+# Generated corpora: reproducible from a seed, and hundreds of megabytes.
+data/synth/
+data/real/
+checkpoints/
+# Third-party fonts are licensed separately; drop them in, do not commit them.
+fonts/
