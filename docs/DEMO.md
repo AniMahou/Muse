@@ -33,6 +33,12 @@ the demo: acknowledging the alert closes it, recording adds clips, answering a
 prompt clears it. The second run of a demo should look exactly like the first,
 and this is the only thing that guarantees it.
 
+> **Reset signs you out.** It recreates the accounts, so the session token in
+> the browser stops matching a real user and you land back on the sign-in page.
+> That is expected — **log in again after every reset**, and do it before you go
+> on rather than in front of the room. Have both tabs logged in and sitting on
+> the screen you plan to open with.
+
 ### What reset puts there
 
 | | |
