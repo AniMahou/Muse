@@ -216,6 +216,30 @@ It converts to the format the pipeline wants and puts them in `datasets/clips/`.
 already ingested are skipped, so it is safe to re-run. It accepts m4a, mp3, wav, 3gp, amr
 and most other things a phone produces.
 
+## Check the recordings before you label them
+
+```bash
+npm run clips
+```
+
+Lists every clip with its length and peak loudness, tells you which cards are still
+missing, and flags anything unusable.
+
+**Run this after your first few clips, not at the end.** The failure it exists to catch is
+a muted or wrong microphone: those files have exactly the right length and contain nothing.
+Everything afterwards still looks plausible — the transcript comes back empty, accuracy
+collapses — and it reads as a broken pipeline rather than a dead input. A clip marked
+`SILENT` has to be recorded again.
+
+### Your audio is not in git
+
+`datasets/clips/` is **deliberately ignored** — forty wav files do not belong in a
+repository. So pushing does not send your recordings anywhere, and nobody else can see
+them. When Tabib needs the audio, zip the folder and send it over Drive.
+
+What you push is the CSV and the labels. What you send over Drive is the audio. Both are
+needed.
+
 ## Labelling
 
 Open the shared sheet. You fill in **one row per clip**, six columns:

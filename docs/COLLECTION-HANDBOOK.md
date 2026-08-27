@@ -115,6 +115,11 @@ Everything is under `backend/`. Run all commands from there.
 Audio never goes into git — it is large and deliberately ignored. Only the CSV and the JSON
 labels get committed.
 
+This surprises people, so it is worth saying plainly: you can record forty clips, commit,
+push, and the other person still sees an empty `datasets/clips/`. That is working as
+intended, not a mistake. **Send the audio over Drive; push the CSV and the labels.** Both
+halves are needed and they travel separately.
+
 ---
 
 ## 6 · The commands, and what each actually does
@@ -186,6 +191,20 @@ system as *its* mistake. So it waits until audio is genuinely being recorded.
 ### `npm run mic -- 1a`
 
 Records exactly one clip and exits. Same thing, non-interactive.
+
+### `npm run clips`
+
+Audits what is in `datasets/clips/`: every clip's length and peak loudness, which of the
+25 cards are still missing, and anything unusable. Changes nothing, so run it often.
+
+The check that matters is loudness. A recording made against a muted input, or the wrong
+device on a machine with several, produces a file of exactly the right length containing
+silence — and everything after it behaves plausibly, so it surfaces days later looking
+like a broken pipeline instead of a dead microphone. A clip marked `SILENT` must be
+recorded again.
+
+Paste this output to Tabib when he asks how collection is going. It is the only way he
+can see your clips, because the audio is not in git.
 
 ### `npm run collect -- <folder>`
 

@@ -23,6 +23,7 @@
     "crib": "tsx scripts/crib.ts",
     "mic": "tsx scripts/mic.ts",
     "collect": "tsx scripts/collect.ts",
+    "clips": "tsx scripts/clips-audit.ts",
     "labels:build": "tsx scripts/labels-build.ts",
     "labels:check": "tsx scripts/labels-build.ts --check",
     "view:trace": "tsx scripts/view-trace.ts",
