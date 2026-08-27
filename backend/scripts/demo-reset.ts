@@ -101,6 +101,89 @@ const HISTORY: Seed[] = [
     bn: "রহমান স্টোরে প্রাণ লিচি জুস শেষ" },
 ];
 
+/**
+ * Per-field confidence for the seeded history.
+ *
+ * These are FIXTURES, not pipeline output — nothing here ran through stage 6,
+ * because that needs a real transcript with per-word confidence and real
+ * resolver annotations, and this script must work offline in a few hundred
+ * milliseconds.
+ *
+ * They are shaped to behave like the real thing rather than to look tidy:
+ *
+ *  - only fields the observation actually HAS are scored. Stage 6 skips nulls,
+ *    because a field nobody filled has nothing to be uncertain about, and
+ *    scoring it would flag every observation for everything it never mentioned.
+ *  - each field sits in the band the real stage tends to produce for it. An
+ *    outlet backed by GPS *and* a spoken name scores higher than a competitor
+ *    brand recovered from one mangled word.
+ *  - values vary per clip, deterministically. The first version of this wrote
+ *    the same six numbers to every row, so every card in the feed read exactly
+ *    90 — which is the tell that makes an audience stop believing the rest of
+ *    the screen.
+ *
+ * A clip recorded live during a demo carries genuinely derived confidence.
+ * These only have to be plausible enough not to lie about the shape.
+ */
+const BAND: Record<string, [number, number]> = {
+  type: [0.88, 0.95],            // model-authored, capped by the stage's own penalty
+  outletId: [0.74, 0.94],        // GPS plus a spoken name, or GPS alone
+  skuId: [0.71, 0.94],           // phonetic match quality times resolver margin
+  competitorBrand: [0.62, 0.88], // usually one word, often the mangled one
+  quantity: [0.70, 0.96],        // canonical spelling scores far above a fuzzy hit
+  unit: [0.70, 0.93],
+  priceDelta: [0.68, 0.92],
+  severity: [0.88, 0.92],
+};
+
+/**
+ * A hash that actually avalanches.
+ *
+ * The first attempt multiplied by 31 and shifted out a byte, which meant
+ * clip_demo_01 and clip_demo_02 differed in the low bits only — every row of a
+ * given type came out with identical confidence, which is the same tell as
+ * hardcoding it. Mixing on the way out is what makes one character of input
+ * change the whole output.
+ */
+function mix(s: string): number {
+  let h = 0x811c9dc5;
+  for (const ch of s) {
+    h ^= ch.charCodeAt(0);
+    h = Math.imul(h, 0x01000193) >>> 0;
+  }
+  h ^= h >>> 16;
+  h = Math.imul(h, 0x85ebca6b) >>> 0;
+  h ^= h >>> 13;
+  return h >>> 0;
+}
+
+/** Deterministic 0..1, distinct per clip AND per field. */
+const unit01 = (clipId: string, field: string) => mix(`${clipId}:${field}`) / 0xffffffff;
+
+function fixtureConfidence(
+  clipId: string,
+  core: Record<string, unknown>,
+  flagged: string[],
+): Record<string, number> {
+  const out: Record<string, number> = {};
+  for (const [field, value] of Object.entries(core)) {
+    if (value === null || value === undefined) continue;
+    const band = BAND[field];
+    if (!band) continue;
+
+    const t = unit01(clipId, field);
+    // Below threshold when the field is flagged, so the amber ring in Review
+    // agrees with the reason the record was flagged in the first place.
+    if (flagged.includes(field)) {
+      out[field] = Number((0.42 + t * 0.16).toFixed(4));
+      continue;
+    }
+    const [lo, hi] = band;
+    out[field] = Number((lo + t * (hi - lo)).toFixed(4));
+  }
+  return out;
+}
+
 async function main(): Promise<void> {
   const db = await connectMongo();
   await ensureIndexes(db);
@@ -186,19 +269,19 @@ async function main(): Promise<void> {
     });
 
     const flagged = h.flagged ?? [];
+    const core = {
+      type: h.type, outletId: h.outletId,
+      skuId: h.skuId ?? null, competitorBrand: h.competitorBrand ?? null,
+      quantity: h.quantity ?? null, unit: h.unit ?? null,
+      priceDelta: h.priceDelta ?? null, severity: h.severity,
+    };
+
     observations.push({
       observationId: `obs_demo_${String(i + 1).padStart(2, "0")}`,
       clipId, companyId: COMPANY_ID, repId: h.repId,
-      type: h.type, outletId: h.outletId,
-      skuId: h.skuId ?? null, competitorBrand: h.competitorBrand ?? null,
-      quantity: h.quantity ?? null, unit: h.unit ?? null, priceDelta: h.priceDelta ?? null,
-      severity: h.severity, verbatimBn: h.bn,
+      ...core, verbatimBn: h.bn,
       status: flagged.length ? "needs_clarification" : "confirmed",
-      fieldConfidence: {
-        type: 0.95, outletId: 0.91, skuId: 0.88,
-        competitorBrand: 0.86, quantity: flagged.includes("quantity") ? 0.54 : 0.93,
-        priceDelta: 0.9,
-      },
+      fieldConfidence: fixtureConfidence(clipId, core, flagged),
       flaggedFields: flagged,
       recordedAt: at, createdAt: at, updatedAt: at,
     });
