@@ -217,6 +217,15 @@ npm run collect -- "C:\Users\you\Desktop\muse-clips"
 npm run collect -- ~/Desktop/muse-clips
 ```
 
+### `npm run labels:scaffold`
+
+Adds a row to `datasets/raw/clips.csv` for every recording that does not have one, with
+`clip_id` and `card_id` filled in from the filename. You then fill in `transcript_bn`,
+`speaker` and `noise`.
+
+Run this after recording. Without it you would be typing forty filenames by hand, which is
+the easiest place in the process to make a typo that then reads as missing audio.
+
 ### `npm run labels:check`
 
 **Run this constantly.** It reads both CSVs, cross-checks everything, and prints problems
@@ -290,8 +299,13 @@ Cards are numbered 1 to 25.
 **`transcript_bn is empty — write what was actually said`**
 That column cannot be blank. It is the reference the accuracy is measured against.
 
-**`noise "shouting" must be quiet, moderate or loud`**
-Exactly those three words, lowercase.
+**`noise is empty — write quiet, moderate or loud`** or **`noise "shouting" must be...`**
+Exactly those three words, lowercase. It is never defaulted for you: the noise mix is the
+experiment, and inventing it would fabricate the one variable being measured.
+
+**`0 clip(s) valid` when you know you recorded clips**
+`labels:check` reads `clips.csv`, not the folder. Recordings with no row are invisible to
+it — it now lists them and tells you to run `npm run labels:scaffold`.
 
 **`dialect "sylhet" — this clip WILL BE EXCLUDED from the evaluation`**
 A warning, not an error. The evaluation only covers Dhaka-standard Bangla and drops

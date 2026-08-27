@@ -1,6 +1,7 @@
 /**
  * Build datasets/labels/*.json from two spreadsheets.
  *
+ *   npm run labels:scaffold   add a row for every recording that has none
  *   npm run labels:check      validate only, write nothing
  *   npm run labels:build      validate and write
  *
@@ -89,8 +90,55 @@ async function readCsv(file: string) {
   return parseCsv(text).rows;
 }
 
+/**
+ * Add a row for every recording that does not have one.
+ *
+ * The alternative is transcribing the filenames by hand, which is both tedious
+ * and the easiest place in the whole process to introduce a typo that then
+ * reads as missing audio. card_id comes from the filename, which is where it
+ * already is.
+ *
+ * `noise` is deliberately left EMPTY rather than defaulted. The noise mix is
+ * the experiment — the claim is that fields survive bad audio — so quietly
+ * defaulting every clip to "moderate" would fabricate the one variable the
+ * evaluation is meant to vary.
+ */
+async function scaffold(): Promise<void> {
+  const file = path.join(RAW, "clips.csv");
+  const existing = await fs.readFile(file, "utf8").catch(() => "");
+  const known = new Set(parseCsv(existing).rows.map((r) => (r.clip_id ?? "").trim()));
+
+  const audio = (await fs.readdir(CLIPS).catch(() => [] as string[]))
+    .filter((f) => f.endsWith(".wav"))
+    .map((f) => path.basename(f, ".wav"))
+    .filter((id) => CLIP_NAME.test(id) && !known.has(id))
+    .sort();
+
+  if (audio.length === 0) {
+    console.log(c.green(`\n  Every recording already has a row in clips.csv.\n`));
+    return;
+  }
+
+  const header = "clip_id,card_id,transcript_bn,speaker,noise,dialect,notes";
+  const body = existing.trim() === "" ? header + "\n" : existing.replace(/\n*$/, "\n");
+  const added = audio
+    .map((id) => `${id},${Number(/^clip-(\d{2})/.exec(id)![1])},,,,dhaka,`)
+    .join("\n");
+
+  await fs.writeFile(file, body + added + "\n", "utf8");
+  console.log(`\n  ${c.green("+")} added ${c.bold(String(audio.length))} row(s) to datasets/raw/clips.csv`);
+  for (const id of audio) console.log(`    ${id}`);
+  console.log(c.dim(`\n  Now fill in, for each row:`));
+  console.log(`    ${c.bold("transcript_bn")}  what was actually said, word for word`);
+  console.log(`    ${c.bold("speaker")}        who said it`);
+  console.log(`    ${c.bold("noise")}          quiet, moderate or loud`);
+  console.log(c.dim(`\n  Then:  npm run labels:check\n`));
+}
+
 async function main(): Promise<void> {
   const check = process.argv.includes("--check");
+
+  if (process.argv.includes("--scaffold")) return scaffold();
 
   const truthRows = await readCsv("ground-truth.csv");
   const clipRows = await readCsv("clips.csv");
@@ -170,8 +218,13 @@ async function main(): Promise<void> {
     const hasAudio = await fs.access(path.join(CLIPS, audioFile)).then(() => true, () => false);
     if (!hasAudio) fail(at, `no audio at datasets/clips/${audioFile} — record it with npm run mic, or ingest it with npm run collect`);
 
-    const noise = (r.noise ?? "moderate").trim() || "moderate";
-    if (!NOISE.has(noise)) fail(at, `noise "${noise}" must be quiet, moderate or loud`);
+    const noise = (r.noise ?? "").trim();
+    // Not defaulted. The noise mix is the experiment; inventing it would
+    // fabricate the one variable the evaluation exists to vary.
+    if (noise === "") fail(at, "noise is empty — write quiet, moderate or loud");
+    else if (!NOISE.has(noise)) fail(at, `noise "${noise}" must be quiet, moderate or loud`);
+
+    if ((r.speaker ?? "").trim() === "") warn(at, "speaker is empty — the distinct-speaker count needs it");
 
     const dialect = (r.dialect ?? "dhaka").trim() || "dhaka";
     if (!DIALECT.has(dialect)) fail(at, `dialect "${dialect}" is not a known value`);
@@ -227,6 +280,17 @@ async function main(): Promise<void> {
     process.exit(1);
   }
 
+  // Recordings nobody has written a row for. This is the overwhelmingly likely
+  // state after a recording session, and reporting "0 clips valid" without
+  // mentioning it is actively misleading: the work IS done, it is just not
+  // described yet.
+  const described = new Set(clipRows.map((r) => (r.clip_id ?? "").trim()));
+  const orphans = (await fs.readdir(CLIPS).catch(() => [] as string[]))
+    .filter((f) => f.endsWith(".wav"))
+    .map((f) => path.basename(f, ".wav"))
+    .filter((id) => !described.has(id))
+    .sort();
+
   const usable = built.filter((b) => b.meta.dialect === "dhaka");
   const noiseMix = { quiet: 0, moderate: 0, loud: 0 } as Record<string, number>;
   const speakers = new Set<string>();
@@ -237,7 +301,16 @@ async function main(): Promise<void> {
     if (b.observations.length > 1) multi++;
   }
 
-  console.log(`  ${c.green("✓")} ${c.bold(String(built.length))} clip(s) valid · ${usable.length} usable in the evaluation`);
+  if (orphans.length > 0) {
+    console.log(c.yellow(`  ${orphans.length} recording(s) have no row in clips.csv:`));
+    for (const id of orphans) console.log(`    ${c.yellow("·")} ${id}`);
+    console.log(c.dim(`\n  These are on disk but nothing describes them, so they are invisible here.`));
+    console.log(`  Add rows automatically:  ${c.bold("npm run labels:scaffold")}\n`);
+  }
+
+  // A tick against zero reads as success. It is not success, it is an empty set.
+  const mark = built.length === 0 ? c.yellow("—") : c.green("✓");
+  console.log(`  ${mark} ${c.bold(String(built.length))} clip(s) valid · ${usable.length} usable in the evaluation`);
   console.log(`    noise    quiet ${noiseMix.quiet} · moderate ${noiseMix.moderate} · loud ${noiseMix.loud}`);
   console.log(`    speakers ${speakers.size || "—"}`);
   console.log(`    ${multi} clip(s) carry more than one observation`);

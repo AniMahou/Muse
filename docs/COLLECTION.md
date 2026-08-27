@@ -276,7 +276,21 @@ an error the system did not make.
 
 ## Checking your own work
 
-Export your sheet tab as CSV, save it to `backend/datasets/raw/clips.csv`, then:
+If you recorded with `npm run mic`, the fastest route skips the spreadsheet entirely —
+give every recording a row, then fill in three columns:
+
+```bash
+npm run labels:scaffold
+```
+
+That writes one row per recording into `datasets/raw/clips.csv`, with `clip_id` and
+`card_id` already filled from the filename. Open it in Excel or Google Sheets and fill in
+`transcript_bn`, `speaker` and `noise`.
+
+`noise` is left blank on purpose and the check will refuse until you set it. Defaulting it
+would invent the one variable the whole evaluation exists to vary.
+
+Otherwise, export your sheet tab as CSV, save it to `backend/datasets/raw/clips.csv`, then:
 
 ```bash
 npm run labels:check
