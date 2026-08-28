@@ -36,6 +36,53 @@ BN_NAMES: dict[str, str] = {
     "Wheel": "হুইল",
     "White Plus": "হোয়াইট প্লাস",
     "Rin Powder": "রিন পাউডার",
+    # Round-two catalogue. Taken from the recording cards rather than
+    # transliterated: transliteration is not reversible, and a machine guess
+    # produces spellings no shopkeeper writes — which would train the model to
+    # read words that never appear on a tag.
+    "Taaza Tea": "তাজা চা",
+    "Pepsodent Toothpaste": "পেপসোডেন্ট টুথপেস্ট",
+    "Closeup Toothpaste": "ক্লোজআপ",
+    "Ispahani Mirzapore Tea": "ইসপাহানি মির্জাপুর চা",
+    "Meril Petroleum Jelly": "মেরিল পেট্রোলিয়াম জেলি",
+    "Radhuni Halim Mix": "রাঁধুনি হালিম মিক্স",
+    "Bashundhara Tissue": "বসুন্ধরা টিস্যু",
+    "Fresh Soybean Oil": "ফ্রেশ সয়াবিন তেল",
+    "Parachute Coconut Oil": "প্যারাসুট নারিকেল তেল",
+    "Olympic Energy Biscuit": "অলিম্পিক এনার্জি বিস্কুট",
+    "Cocola Noodles": "কোকোলা নুডলস",
+    "Mojo": "মোজো",
+    "Clemon": "ক্লেমন",
+    "Tibet Pomade": "তিব্বত পমেড",
+    "Chaka Washing Powder": "চাকা ওয়াশিং পাউডার",
+    "Mr. Noodles": "মিস্টার নুডলস",
+    "Maggi Noodles": "ম্যাগি নুডলস",
+    "Bombay Sweets": "বম্বে সুইটস",
+    "Ariel Powder": "এরিয়েল পাউডার",
+}
+
+# Shop names as they are written on a signboard, which is Bengali. Outlet names
+# appear on promo signage and are a real part of what a camera sees.
+BN_OUTLETS: dict[str, str] = {
+    "Bijoy Store": "বিজয় স্টোর",
+    "Rahman Store": "রহমান স্টোর",
+    "New Alam Enterprise": "নিউ আলম এন্টারপ্রাইজ",
+    "Shanto General Store": "শান্ত জেনারেল স্টোর",
+    "Bhai Bhai Traders": "ভাই ভাই ট্রেডার্স",
+    "Mayer Doa Store": "মায়ের দোয়া স্টোর",
+    "Bismillah Enterprise": "বিসমিল্লাহ এন্টারপ্রাইজ",
+    "Jononi General Store": "জননী জেনারেল স্টোর",
+    "Tasmia Traders": "তাসমিয়া ট্রেডার্স",
+    "Sikder Mart": "সিকদার মার্ট",
+    "Rony Store": "রনি স্টোর",
+    "Medina Enterprise": "মদিনা এন্টারপ্রাইজ",
+    "Al-Amin Traders": "আল-আমিন ট্রেডার্স",
+    "Milon Store": "মিলন স্টোর",
+    "Tara Mart": "তারা মার্ট",
+    "Haque Enterprise": "হক এন্টারপ্রাইজ",
+    "Zaman Store": "জামান স্টোর",
+    "Jannat General Store": "জান্নাত জেনারেল স্টোর",
+    "Kazi Brothers": "কাজী ব্রাদার্স",
 }
 
 UNITS_BN = ["পিস", "কেজি", "লিটার", "প্যাকেট", "বোতল", "ডজন", "গ্রাম", "মিলি"]
@@ -105,7 +152,8 @@ def line(cat: Catalog, rng: random.Random) -> str:
         return quantity(rng)
     if roll < 0.96:                      # promo signage — a competitor_promo
         return f"{rng.choice(names)} {rng.choice(OFFER_BN)}"
-    return rng.choice([o["name"] for o in cat.outlets])
+    name = rng.choice([o["name"] for o in cat.outlets])
+    return BN_OUTLETS.get(name, name) if rng.random() < 0.7 else name
 
 
 def corpus(cat: Catalog, n: int, seed: int = 0) -> list[str]:

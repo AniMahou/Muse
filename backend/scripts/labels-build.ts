@@ -64,20 +64,36 @@ const num = (v: string): number | null => {
 };
 
 /**
- * The rep's GPS, not the outlet's.
+ * Where the rep was standing.
  *
- * Using each outlet's own coordinates would hand stage 4 the answer and make
- * outlet accuracy meaningless — the four demo outlets sit inside forty metres
- * precisely so the spoken name has to decide. This puts the phone where the
- * rep actually stands, with a few metres of deterministic scatter so the set
- * is reproducible run to run.
+ * Near the outlet being reported on, with realistic GPS error — not the
+ * outlet's exact coordinates, and not a fixed point either.
+ *
+ * Both extremes are wrong and the second one cost a whole evaluation. Using the
+ * outlet's own position hands stage 4 the answer, so the spoken name never has
+ * to decide anything. But anchoring every clip to one fixed point put fifteen
+ * of the nineteen outlets 129-301 m away, outside the 120 m search radius —
+ * so stage 4 returned no candidates at all, stage 5 got an empty outlet enum,
+ * and field accuracy read 31.6% with 101 "missed" outlets against 5 wrong.
+ * A recall collapse that looks like a model regression and is not.
+ *
+ * A rep reporting on Bhai Bhai Traders is standing at Bhai Bhai Traders. So:
+ * the labelled outlet, plus a few tens of metres of scatter — enough that
+ * neighbouring shops stay in range and the name still has work to do.
  */
-function repGeo(clipId: string): { lat: number; lng: number } {
+function repGeo(clipId: string, outletId: string | null): { lat: number; lng: number } {
+  const outlet = outletId ? outletById.get(outletId) : undefined;
+  const anchor = outlet ? outlet.geo : BASE;
+
   let h = 0;
   for (const ch of clipId) h = (h * 31 + ch.charCodeAt(0)) >>> 0;
-  const dLat = (((h & 0xff) / 255) - 0.5) * 0.0003;
-  const dLng = ((((h >> 8) & 0xff) / 255) - 0.5) * 0.0003;
-  return { lat: Number((BASE.lat + dLat).toFixed(6)), lng: Number((BASE.lng + dLng).toFixed(6)) };
+  // ~±35 m, the order of a phone's error in a built-up area.
+  const dLat = (((h & 0xff) / 255) - 0.5) * 0.00063;
+  const dLng = ((((h >> 8) & 0xff) / 255) - 0.5) * 0.00063;
+  return {
+    lat: Number((anchor.lat + dLat).toFixed(6)),
+    lng: Number((anchor.lng + dLng).toFixed(6)),
+  };
 }
 
 async function readCsv(file: string) {
@@ -243,7 +259,7 @@ async function main(): Promise<void> {
       transcriptBn,
       observations,
       outletId: outletOfCard.get(card) ?? null,
-      geo: repGeo(clipId),
+      geo: repGeo(clipId, outletOfCard.get(card) ?? null),
       meta: {
         dialect,
         noise,
