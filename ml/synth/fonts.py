@@ -84,3 +84,40 @@ def discover(extra_dirs: list[str] | None = None) -> list[Face]:
                 except Exception:
                     pass
     return out
+
+
+def _report() -> None:
+    """`python -m synth.fonts` — list every font that can actually be used.
+
+    Deliberately runnable with fonttools alone, no numpy or OpenCV, so that
+    checking a font does not require the full generation environment.
+    """
+    import sys
+
+    faces = discover(["fonts"])
+    if not faces:
+        print("\n  No Bengali-capable fonts found.")
+        print("  Put .ttf / .otf files in ml/fonts/ and run this again.\n")
+        sys.exit(1)
+
+    families: dict[str, int] = {}
+    for f in faces:
+        fam = f.name.split()[0] if f.name else "?"
+        families[fam] = families.get(fam, 0) + 1
+
+    print(f"\n  {len(faces)} usable Bengali face(s), {len(families)} family/families\n")
+    for f in sorted(faces, key=lambda x: x.name):
+        taka = "" if f.has_taka else "   (no ৳ glyph — still usable)"
+        where = "ml/fonts/" if "/fonts/" in f.path else "system"
+        print(f"    {f.name:38} {where:10}{taka}")
+
+    added = [f for f in faces if "/fonts/" in f.path]
+    print(f"\n  {len(added)} from ml/fonts/ · {len(faces) - len(added)} from this computer")
+    if len(faces) < 25:
+        print(f"  Target is 25. Add {25 - len(faces)} more.\n")
+    else:
+        print("  Target reached.\n")
+
+
+if __name__ == "__main__":
+    _report()
