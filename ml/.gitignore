@@ -7,3 +7,5 @@ data/real/
 checkpoints/
 # Third-party fonts are licensed separately; drop them in, do not commit them.
 fonts/
+checkpoints/
+*.pt

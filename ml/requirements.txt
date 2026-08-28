@@ -1,8 +1,11 @@
-# Synthetic corpus generation. Training deps (torch) are deliberately separate —
-# generating data should not require a 2GB install.
+# Corpus generation.
 numpy>=2.0
 opencv-python-headless>=4.9
 Pillow>=10.0
 fonttools>=4.50
 uharfbuzz>=0.39
 freetype-py>=2.4
+
+# Training. Kept in the same file now that the recogniser lives here too;
+# generation alone still works without torch installed.
+torch>=2.2
