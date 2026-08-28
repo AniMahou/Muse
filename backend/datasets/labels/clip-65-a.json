@@ -1,0 +1,43 @@
+{
+  "clipId": "clip-65-a",
+  "audioFile": "clip-65-a.wav",
+  "transcriptBn": "কাজী ব্রাদার্সে কোকোলা নুডলস সোয়া পাঁচ কার্টন লাগবে, আর শেলফ পুরা খালি",
+  "observations": [
+    {
+      "type": "demand_signal",
+      "outletId": "OUT-1200",
+      "skuId": "SKU-710",
+      "competitorBrand": null,
+      "quantity": 5.25,
+      "unit": "carton",
+      "priceDelta": null,
+      "severity": "medium",
+      "verbatimBn": "কাজী ব্রাদার্সে কোকোলা নুডলস সোয়া পাঁচ কার্টন লাগবে, আর শেলফ পুরা খালি"
+    },
+    {
+      "type": "posm_issue",
+      "outletId": "OUT-1200",
+      "skuId": null,
+      "competitorBrand": null,
+      "quantity": null,
+      "unit": null,
+      "priceDelta": null,
+      "severity": "low",
+      "verbatimBn": "কাজী ব্রাদার্সে কোকোলা নুডলস সোয়া পাঁচ কার্টন লাগবে, আর শেলফ পুরা খালি"
+    }
+  ],
+  "outletId": "OUT-1200",
+  "geo": {
+    "lat": 23.780506,
+    "lng": 90.407374
+  },
+  "meta": {
+    "dialect": "dhaka",
+    "noise": "unknown",
+    "speakerId": "reader",
+    "referenceSource": "heard",
+    "labelledBy": "muse-team",
+    "labelledAt": "2026-08-28T22:10:06.407Z",
+    "promotedFromCorrection": false
+  }
+}

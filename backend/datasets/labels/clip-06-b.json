@@ -1,0 +1,32 @@
+{
+  "clipId": "clip-06-b",
+  "audioFile": "clip-06-b.wav",
+  "transcriptBn": "রহমান স্টোরে লাক্স এর পোস্টার ছিঁড়ে গেছে, ঝুলে আছে",
+  "observations": [
+    {
+      "type": "posm_issue",
+      "outletId": "OUT-1183",
+      "skuId": null,
+      "competitorBrand": null,
+      "quantity": null,
+      "unit": null,
+      "priceDelta": null,
+      "severity": "low",
+      "verbatimBn": "রহমান স্টোরে লাক্স এর পোস্টার ছিঁড়ে গেছে, ঝুলে আছে"
+    }
+  ],
+  "outletId": "OUT-1183",
+  "geo": {
+    "lat": 23.780666,
+    "lng": 90.407459
+  },
+  "meta": {
+    "dialect": "dhaka",
+    "noise": "unknown",
+    "speakerId": "reader",
+    "referenceSource": "heard",
+    "labelledBy": "muse-team",
+    "labelledAt": "2026-08-28T22:10:06.405Z",
+    "promotedFromCorrection": false
+  }
+}

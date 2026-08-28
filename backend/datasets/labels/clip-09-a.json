@@ -1,0 +1,32 @@
+{
+  "clipId": "clip-09-a",
+  "audioFile": "clip-09-a.wav",
+  "transcriptBn": "বিজয় স্টোরে প্রাণ ম্যাঙ্গো ড্রিংক সোয়া দুই কার্টন লাগবে",
+  "observations": [
+    {
+      "type": "demand_signal",
+      "outletId": "OUT-1182",
+      "skuId": "SKU-407",
+      "competitorBrand": null,
+      "quantity": 2.25,
+      "unit": "carton",
+      "priceDelta": null,
+      "severity": "medium",
+      "verbatimBn": "বিজয় স্টোরে প্রাণ ম্যাঙ্গো ড্রিংক সোয়া দুই কার্টন লাগবে"
+    }
+  ],
+  "outletId": "OUT-1182",
+  "geo": {
+    "lat": 23.780744,
+    "lng": 90.407472
+  },
+  "meta": {
+    "dialect": "dhaka",
+    "noise": "unknown",
+    "speakerId": "reader",
+    "referenceSource": "heard",
+    "labelledBy": "muse-team",
+    "labelledAt": "2026-08-28T22:10:06.405Z",
+    "promotedFromCorrection": false
+  }
+}

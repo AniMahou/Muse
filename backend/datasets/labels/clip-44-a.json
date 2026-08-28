@@ -1,0 +1,32 @@
+{
+  "clipId": "clip-44-a",
+  "audioFile": "clip-44-a.wav",
+  "transcriptBn": "আল-আমিন ট্রেডার্সে অলিম্পিক এনার্জি বিস্কুট তিন হালি লাগবে",
+  "observations": [
+    {
+      "type": "demand_signal",
+      "outletId": "OUT-1194",
+      "skuId": "SKU-709",
+      "competitorBrand": null,
+      "quantity": 12,
+      "unit": "piece",
+      "priceDelta": null,
+      "severity": "medium",
+      "verbatimBn": "আল-আমিন ট্রেডার্সে অলিম্পিক এনার্জি বিস্কুট তিন হালি লাগবে"
+    }
+  ],
+  "outletId": "OUT-1194",
+  "geo": {
+    "lat": 23.780658,
+    "lng": 90.407396
+  },
+  "meta": {
+    "dialect": "dhaka",
+    "noise": "unknown",
+    "speakerId": "reader",
+    "referenceSource": "heard",
+    "labelledBy": "muse-team",
+    "labelledAt": "2026-08-28T22:10:06.407Z",
+    "promotedFromCorrection": false
+  }
+}

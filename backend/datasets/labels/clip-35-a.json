@@ -1,0 +1,31 @@
+{
+  "clipId": "clip-35-a",
+  "audioFile": "clip-35-a.wav",
+  "transcriptBn": "",
+  "observations": [
+    {
+      "type": "competitor_promo",
+      "outletId": "OUT-1183",
+      "skuId": null,
+      "competitorBrand": "COMP-RIN",
+      "quantity": null,
+      "unit": null,
+      "priceDelta": null,
+      "severity": "medium",
+      "verbatimBn": ""
+    }
+  ],
+  "outletId": "OUT-1183",
+  "geo": {
+    "lat": 23.780472,
+    "lng": 90.407264
+  },
+  "meta": {
+    "dialect": "dhaka",
+    "noise": "unknown",
+    "referenceSource": "heard",
+    "labelledBy": "muse-team",
+    "labelledAt": "2026-08-28T22:10:06.406Z",
+    "promotedFromCorrection": false
+  }
+}

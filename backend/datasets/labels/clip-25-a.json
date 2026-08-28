@@ -1,0 +1,43 @@
+{
+  "clipId": "clip-25-a",
+  "audioFile": "clip-25-a.wav",
+  "transcriptBn": "রহমান স্টোরে ক্লিয়ার শ্যাম্পু সতেরো পিস লাগবে, আর হুইল এর অফার চলতেছে",
+  "observations": [
+    {
+      "type": "demand_signal",
+      "outletId": "OUT-1183",
+      "skuId": "SKU-505",
+      "competitorBrand": null,
+      "quantity": 17,
+      "unit": "piece",
+      "priceDelta": null,
+      "severity": "medium",
+      "verbatimBn": "রহমান স্টোরে ক্লিয়ার শ্যাম্পু সতেরো পিস লাগবে, আর হুইল এর অফার চলতেছে"
+    },
+    {
+      "type": "competitor_promo",
+      "outletId": "OUT-1183",
+      "skuId": null,
+      "competitorBrand": "COMP-WHEEL",
+      "quantity": null,
+      "unit": null,
+      "priceDelta": null,
+      "severity": "medium",
+      "verbatimBn": "রহমান স্টোরে ক্লিয়ার শ্যাম্পু সতেরো পিস লাগবে, আর হুইল এর অফার চলতেছে"
+    }
+  ],
+  "outletId": "OUT-1183",
+  "geo": {
+    "lat": 23.780662,
+    "lng": 90.407428
+  },
+  "meta": {
+    "dialect": "dhaka",
+    "noise": "unknown",
+    "speakerId": "reader",
+    "referenceSource": "heard",
+    "labelledBy": "muse-team",
+    "labelledAt": "2026-08-28T22:10:06.406Z",
+    "promotedFromCorrection": false
+  }
+}

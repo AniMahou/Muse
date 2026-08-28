@@ -1,0 +1,31 @@
+{
+  "clipId": "clip-29-a",
+  "audioFile": "clip-29-a.wav",
+  "transcriptBn": "",
+  "observations": [
+    {
+      "type": "price_change",
+      "outletId": "OUT-1185",
+      "skuId": "SKU-502",
+      "competitorBrand": null,
+      "quantity": null,
+      "unit": null,
+      "priceDelta": 8,
+      "severity": "medium",
+      "verbatimBn": ""
+    }
+  ],
+  "outletId": "OUT-1185",
+  "geo": {
+    "lat": 23.780666,
+    "lng": 90.407445
+  },
+  "meta": {
+    "dialect": "dhaka",
+    "noise": "unknown",
+    "referenceSource": "heard",
+    "labelledBy": "muse-team",
+    "labelledAt": "2026-08-28T22:10:06.406Z",
+    "promotedFromCorrection": false
+  }
+}

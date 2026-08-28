@@ -1,0 +1,32 @@
+{
+  "clipId": "clip-43-a",
+  "audioFile": "clip-43-a.wav",
+  "transcriptBn": "মদিনা এন্টারপ্রাইজে প্যারাসুট নারিকেল তেল পৌনে চার ডজন লাগবে",
+  "observations": [
+    {
+      "type": "demand_signal",
+      "outletId": "OUT-1193",
+      "skuId": "SKU-708",
+      "competitorBrand": null,
+      "quantity": 45,
+      "unit": "piece",
+      "priceDelta": null,
+      "severity": "medium",
+      "verbatimBn": "মদিনা এন্টারপ্রাইজে প্যারাসুট নারিকেল তেল পৌনে চার ডজন লাগবে"
+    }
+  ],
+  "outletId": "OUT-1193",
+  "geo": {
+    "lat": 23.780732,
+    "lng": 90.407391
+  },
+  "meta": {
+    "dialect": "dhaka",
+    "noise": "unknown",
+    "speakerId": "reader",
+    "referenceSource": "heard",
+    "labelledBy": "muse-team",
+    "labelledAt": "2026-08-28T22:10:06.407Z",
+    "promotedFromCorrection": false
+  }
+}

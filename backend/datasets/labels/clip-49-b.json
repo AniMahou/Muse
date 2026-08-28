@@ -1,0 +1,32 @@
+{
+  "clipId": "clip-49-b",
+  "audioFile": "clip-49-b.wav",
+  "transcriptBn": "জান্নাত জেনারেল স্টোরে মোজো সাড়ে চার কার্টন লাগবে",
+  "observations": [
+    {
+      "type": "demand_signal",
+      "outletId": "OUT-1199",
+      "skuId": "SKU-711",
+      "competitorBrand": null,
+      "quantity": 4.5,
+      "unit": "carton",
+      "priceDelta": null,
+      "severity": "medium",
+      "verbatimBn": "জান্নাত জেনারেল স্টোরে মোজো সাড়ে চার কার্টন লাগবে"
+    }
+  ],
+  "outletId": "OUT-1199",
+  "geo": {
+    "lat": 23.78059,
+    "lng": 90.407418
+  },
+  "meta": {
+    "dialect": "dhaka",
+    "noise": "unknown",
+    "speakerId": "reader",
+    "referenceSource": "heard",
+    "labelledBy": "muse-team",
+    "labelledAt": "2026-08-28T22:10:06.407Z",
+    "promotedFromCorrection": false
+  }
+}

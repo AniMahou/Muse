@@ -1,0 +1,43 @@
+{
+  "clipId": "clip-22-a",
+  "audioFile": "clip-22-a.wav",
+  "transcriptBn": "নিউ আলম এ প্রাণ লিচি জুস পৌনে দুই ডজন লাগবে, আর হুইল অনেক বেশি মাল তুলছে",
+  "observations": [
+    {
+      "type": "demand_signal",
+      "outletId": "OUT-1184",
+      "skuId": "SKU-410",
+      "competitorBrand": null,
+      "quantity": 21,
+      "unit": "piece",
+      "priceDelta": null,
+      "severity": "medium",
+      "verbatimBn": "নিউ আলম এ প্রাণ লিচি জুস পৌনে দুই ডজন লাগবে, আর হুইল অনেক বেশি মাল তুলছে"
+    },
+    {
+      "type": "competitor_promo",
+      "outletId": "OUT-1184",
+      "skuId": null,
+      "competitorBrand": "COMP-WHEEL",
+      "quantity": null,
+      "unit": null,
+      "priceDelta": null,
+      "severity": "medium",
+      "verbatimBn": "নিউ আলম এ প্রাণ লিচি জুস পৌনে দুই ডজন লাগবে, আর হুইল অনেক বেশি মাল তুলছে"
+    }
+  ],
+  "outletId": "OUT-1184",
+  "geo": {
+    "lat": 23.780583,
+    "lng": 90.407415
+  },
+  "meta": {
+    "dialect": "dhaka",
+    "noise": "unknown",
+    "speakerId": "reader",
+    "referenceSource": "heard",
+    "labelledBy": "muse-team",
+    "labelledAt": "2026-08-28T22:10:06.406Z",
+    "promotedFromCorrection": false
+  }
+}

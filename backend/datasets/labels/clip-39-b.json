@@ -1,0 +1,32 @@
+{
+  "clipId": "clip-39-b",
+  "audioFile": "clip-39-b.wav",
+  "transcriptBn": "জননী জেনারেল স্টোরে বসুন্ধরা টিস্যুর দাম বারো টাকা বেড়ে গেছে",
+  "observations": [
+    {
+      "type": "price_change",
+      "outletId": "OUT-1189",
+      "skuId": "SKU-706",
+      "competitorBrand": null,
+      "quantity": null,
+      "unit": null,
+      "priceDelta": 12,
+      "severity": "medium",
+      "verbatimBn": "জননী জেনারেল স্টোরে বসুন্ধরা টিস্যুর দাম বারো টাকা বেড়ে গেছে"
+    }
+  ],
+  "outletId": "OUT-1189",
+  "geo": {
+    "lat": 23.780478,
+    "lng": 90.407282
+  },
+  "meta": {
+    "dialect": "dhaka",
+    "noise": "unknown",
+    "speakerId": "reader",
+    "referenceSource": "heard",
+    "labelledBy": "muse-team",
+    "labelledAt": "2026-08-28T22:10:06.407Z",
+    "promotedFromCorrection": false
+  }
+}

@@ -1,0 +1,54 @@
+{
+  "clipId": "clip-55-a",
+  "audioFile": "clip-55-a.wav",
+  "transcriptBn": "তাসমিয়া ট্রেডার্সে ম্যাগি নুডলস সোয়া তিন কার্টন আর বসুন্ধরা টিস্যু দুই ডজন লাগবে, আর ডেলিভারি দেরি করে আসতেছে",
+  "observations": [
+    {
+      "type": "demand_signal",
+      "outletId": "OUT-1190",
+      "skuId": null,
+      "competitorBrand": "COMP-MAGGI",
+      "quantity": 3.25,
+      "unit": "carton",
+      "priceDelta": null,
+      "severity": "medium",
+      "verbatimBn": "তাসমিয়া ট্রেডার্সে ম্যাগি নুডলস সোয়া তিন কার্টন আর বসুন্ধরা টিস্যু দুই ডজন লাগবে, আর ডেলিভারি দেরি করে আসতেছে"
+    },
+    {
+      "type": "demand_signal",
+      "outletId": "OUT-1190",
+      "skuId": "SKU-706",
+      "competitorBrand": null,
+      "quantity": 24,
+      "unit": "piece",
+      "priceDelta": null,
+      "severity": "medium",
+      "verbatimBn": "তাসমিয়া ট্রেডার্সে ম্যাগি নুডলস সোয়া তিন কার্টন আর বসুন্ধরা টিস্যু দুই ডজন লাগবে, আর ডেলিভারি দেরি করে আসতেছে"
+    },
+    {
+      "type": "retailer_complaint",
+      "outletId": "OUT-1190",
+      "skuId": null,
+      "competitorBrand": null,
+      "quantity": null,
+      "unit": null,
+      "priceDelta": null,
+      "severity": "medium",
+      "verbatimBn": "তাসমিয়া ট্রেডার্সে ম্যাগি নুডলস সোয়া তিন কার্টন আর বসুন্ধরা টিস্যু দুই ডজন লাগবে, আর ডেলিভারি দেরি করে আসতেছে"
+    }
+  ],
+  "outletId": "OUT-1190",
+  "geo": {
+    "lat": 23.780696,
+    "lng": 90.407537
+  },
+  "meta": {
+    "dialect": "dhaka",
+    "noise": "unknown",
+    "speakerId": "reader",
+    "referenceSource": "heard",
+    "labelledBy": "muse-team",
+    "labelledAt": "2026-08-28T22:10:06.407Z",
+    "promotedFromCorrection": false
+  }
+}

@@ -1,0 +1,43 @@
+{
+  "clipId": "clip-56-a",
+  "audioFile": "clip-56-a.wav",
+  "transcriptBn": "সিকদার মার্টে মিস্টার নুডলস অনেক বেশি মাল তুলছে, আর আমাদের কোকোলা নুডলস পনেরো পিস লাগবে",
+  "observations": [
+    {
+      "type": "competitor_promo",
+      "outletId": "OUT-1191",
+      "skuId": null,
+      "competitorBrand": "COMP-MRNOODLES",
+      "quantity": null,
+      "unit": null,
+      "priceDelta": null,
+      "severity": "medium",
+      "verbatimBn": "সিকদার মার্টে মিস্টার নুডলস অনেক বেশি মাল তুলছে, আর আমাদের কোকোলা নুডলস পনেরো পিস লাগবে"
+    },
+    {
+      "type": "demand_signal",
+      "outletId": "OUT-1191",
+      "skuId": "SKU-710",
+      "competitorBrand": null,
+      "quantity": 15,
+      "unit": "piece",
+      "priceDelta": null,
+      "severity": "medium",
+      "verbatimBn": "সিকদার মার্টে মিস্টার নুডলস অনেক বেশি মাল তুলছে, আর আমাদের কোকোলা নুডলস পনেরো পিস লাগবে"
+    }
+  ],
+  "outletId": "OUT-1191",
+  "geo": {
+    "lat": 23.780622,
+    "lng": 90.407542
+  },
+  "meta": {
+    "dialect": "dhaka",
+    "noise": "unknown",
+    "speakerId": "reader",
+    "referenceSource": "heard",
+    "labelledBy": "muse-team",
+    "labelledAt": "2026-08-28T22:10:06.407Z",
+    "promotedFromCorrection": false
+  }
+}

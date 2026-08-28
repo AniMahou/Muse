@@ -1,0 +1,32 @@
+{
+  "clipId": "clip-37-a",
+  "audioFile": "clip-37-a.wav",
+  "transcriptBn": "মায়ের দোয়া স্টোরে মেরিল পেট্রোলিয়াম জেলি একদম শেষ",
+  "observations": [
+    {
+      "type": "stock_out",
+      "outletId": "OUT-1187",
+      "skuId": "SKU-704",
+      "competitorBrand": null,
+      "quantity": null,
+      "unit": null,
+      "priceDelta": null,
+      "severity": "high",
+      "verbatimBn": "মায়ের দোয়া স্টোরে মেরিল পেট্রোলিয়াম জেলি একদম শেষ"
+    }
+  ],
+  "outletId": "OUT-1187",
+  "geo": {
+    "lat": 23.780625,
+    "lng": 90.407272
+  },
+  "meta": {
+    "dialect": "dhaka",
+    "noise": "unknown",
+    "speakerId": "reader",
+    "referenceSource": "heard",
+    "labelledBy": "muse-team",
+    "labelledAt": "2026-08-28T22:10:06.406Z",
+    "promotedFromCorrection": false
+  }
+}

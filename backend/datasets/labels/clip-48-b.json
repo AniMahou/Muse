@@ -1,0 +1,32 @@
+{
+  "clipId": "clip-48-b",
+  "audioFile": "clip-48-b.wav",
+  "transcriptBn": "জামান স্টোরে চাকা ওয়াশিং পাউডার একদম নাই",
+  "observations": [
+    {
+      "type": "stock_out",
+      "outletId": "OUT-1198",
+      "skuId": "SKU-714",
+      "competitorBrand": null,
+      "quantity": null,
+      "unit": null,
+      "priceDelta": null,
+      "severity": "high",
+      "verbatimBn": "জামান স্টোরে চাকা ওয়াশিং পাউডার একদম নাই"
+    }
+  ],
+  "outletId": "OUT-1198",
+  "geo": {
+    "lat": 23.780664,
+    "lng": 90.407414
+  },
+  "meta": {
+    "dialect": "dhaka",
+    "noise": "unknown",
+    "speakerId": "reader",
+    "referenceSource": "heard",
+    "labelledBy": "muse-team",
+    "labelledAt": "2026-08-28T22:10:06.407Z",
+    "promotedFromCorrection": false
+  }
+}

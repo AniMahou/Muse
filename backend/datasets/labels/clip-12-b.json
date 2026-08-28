@@ -1,0 +1,32 @@
+{
+  "clipId": "clip-12-b",
+  "audioFile": "clip-12-b.wav",
+  "transcriptBn": "শান্ত জেনারেল স্টোরে প্রাণ লিচি জুস শেষ",
+  "observations": [
+    {
+      "type": "stock_out",
+      "outletId": "OUT-1185",
+      "skuId": "SKU-410",
+      "competitorBrand": null,
+      "quantity": null,
+      "unit": null,
+      "priceDelta": null,
+      "severity": "high",
+      "verbatimBn": "শান্ত জেনারেল স্টোরে প্রাণ লিচি জুস শেষ"
+    }
+  ],
+  "outletId": "OUT-1185",
+  "geo": {
+    "lat": 23.780472,
+    "lng": 90.407278
+  },
+  "meta": {
+    "dialect": "dhaka",
+    "noise": "unknown",
+    "speakerId": "reader",
+    "referenceSource": "heard",
+    "labelledBy": "muse-team",
+    "labelledAt": "2026-08-28T22:10:06.405Z",
+    "promotedFromCorrection": false
+  }
+}

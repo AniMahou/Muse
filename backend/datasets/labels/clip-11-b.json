@@ -1,0 +1,32 @@
+{
+  "clipId": "clip-11-b",
+  "audioFile": "clip-11-b.wav",
+  "transcriptBn": "নিউ আলম এন্টারপ্রাইজে রিন পাউডার এর একটা অফার চলতেছে",
+  "observations": [
+    {
+      "type": "competitor_promo",
+      "outletId": "OUT-1184",
+      "skuId": null,
+      "competitorBrand": "COMP-RIN",
+      "quantity": null,
+      "unit": null,
+      "priceDelta": null,
+      "severity": "medium",
+      "verbatimBn": "নিউ আলম এন্টারপ্রাইজে রিন পাউডার এর একটা অফার চলতেছে"
+    }
+  ],
+  "outletId": "OUT-1184",
+  "geo": {
+    "lat": 23.780546,
+    "lng": 90.407274
+  },
+  "meta": {
+    "dialect": "dhaka",
+    "noise": "unknown",
+    "speakerId": "reader",
+    "referenceSource": "heard",
+    "labelledBy": "muse-team",
+    "labelledAt": "2026-08-28T22:10:06.405Z",
+    "promotedFromCorrection": false
+  }
+}

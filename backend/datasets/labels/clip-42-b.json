@@ -1,0 +1,32 @@
+{
+  "clipId": "clip-42-b",
+  "audioFile": "clip-42-b.wav",
+  "transcriptBn": "রনি স্টোর থেকে বম্বে সুইটসের ড্যাংলারটা খুলে ফেলছে",
+  "observations": [
+    {
+      "type": "posm_issue",
+      "outletId": "OUT-1192",
+      "skuId": null,
+      "competitorBrand": "COMP-BOMBAY",
+      "quantity": null,
+      "unit": null,
+      "priceDelta": null,
+      "severity": "low",
+      "verbatimBn": "রনি স্টোর থেকে বম্বে সুইটসের ড্যাংলারটা খুলে ফেলছে"
+    }
+  ],
+  "outletId": "OUT-1192",
+  "geo": {
+    "lat": 23.780506,
+    "lng": 90.407388
+  },
+  "meta": {
+    "dialect": "dhaka",
+    "noise": "unknown",
+    "speakerId": "reader",
+    "referenceSource": "heard",
+    "labelledBy": "muse-team",
+    "labelledAt": "2026-08-28T22:10:06.407Z",
+    "promotedFromCorrection": false
+  }
+}

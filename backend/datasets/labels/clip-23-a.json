@@ -1,0 +1,43 @@
+{
+  "clipId": "clip-23-a",
+  "audioFile": "clip-23-a.wav",
+  "transcriptBn": "শান্ত জেনারেল স্টোরে লাক্স সাবানের দাম পাঁচ টাকা কমছে, সোয়া তিন কার্টন লাগবে",
+  "observations": [
+    {
+      "type": "price_change",
+      "outletId": "OUT-1185",
+      "skuId": "SKU-502",
+      "competitorBrand": null,
+      "quantity": null,
+      "unit": null,
+      "priceDelta": -5,
+      "severity": "medium",
+      "verbatimBn": "শান্ত জেনারেল স্টোরে লাক্স সাবানের দাম পাঁচ টাকা কমছে, সোয়া তিন কার্টন লাগবে"
+    },
+    {
+      "type": "demand_signal",
+      "outletId": "OUT-1185",
+      "skuId": "SKU-502",
+      "competitorBrand": null,
+      "quantity": 3.25,
+      "unit": "carton",
+      "priceDelta": null,
+      "severity": "medium",
+      "verbatimBn": "শান্ত জেনারেল স্টোরে লাক্স সাবানের দাম পাঁচ টাকা কমছে, সোয়া তিন কার্টন লাগবে"
+    }
+  ],
+  "outletId": "OUT-1185",
+  "geo": {
+    "lat": 23.780509,
+    "lng": 90.407419
+  },
+  "meta": {
+    "dialect": "dhaka",
+    "noise": "unknown",
+    "speakerId": "reader",
+    "referenceSource": "heard",
+    "labelledBy": "muse-team",
+    "labelledAt": "2026-08-28T22:10:06.406Z",
+    "promotedFromCorrection": false
+  }
+}

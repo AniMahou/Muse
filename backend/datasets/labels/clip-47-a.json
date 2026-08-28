@@ -1,0 +1,32 @@
+{
+  "clipId": "clip-47-a",
+  "audioFile": "clip-47-a.wav",
+  "transcriptBn": "হক এন্টারপ্রাইজে ক্লোজআপ আড়াই ডজন লাগবে",
+  "observations": [
+    {
+      "type": "demand_signal",
+      "outletId": "OUT-1197",
+      "skuId": "SKU-702",
+      "competitorBrand": null,
+      "quantity": 30,
+      "unit": "piece",
+      "priceDelta": null,
+      "severity": "medium",
+      "verbatimBn": "হক এন্টারপ্রাইজে ক্লোজআপ আড়াই ডজন লাগবে"
+    }
+  ],
+  "outletId": "OUT-1197",
+  "geo": {
+    "lat": 23.780737,
+    "lng": 90.407409
+  },
+  "meta": {
+    "dialect": "dhaka",
+    "noise": "unknown",
+    "speakerId": "reader",
+    "referenceSource": "heard",
+    "labelledBy": "muse-team",
+    "labelledAt": "2026-08-28T22:10:06.407Z",
+    "promotedFromCorrection": false
+  }
+}

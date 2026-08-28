@@ -3,6 +3,7 @@
  *
  *   npm run collect -- ~/Desktop/muse-clips
  *   npm run collect -- ~/Desktop/muse-clips --force
+ *   npm run collect -- ~/Desktop/muse-clips --shift
  *
  * Deliberately does NOT run the pipeline, touch Mongo, or need an API key.
  * The person collecting data should be able to work on a laptop with nothing
@@ -51,6 +52,11 @@ async function durationOf(file: string): Promise<number | null> {
 async function main(): Promise<void> {
   const args = process.argv.slice(2);
   const force = args.includes("--force");
+  // Two people recording the same card set produce the same filenames. Skipping
+  // (the default) would silently drop the second speaker's work, which is the
+  // opposite of what you want — a second voice is the scarcest thing in the set.
+  // --shift keeps both by moving the incoming clip to the next free take letter.
+  const shift = args.includes("--shift");
   const src = args.find((a) => !a.startsWith("--"));
 
   if (!src) {
@@ -92,11 +98,35 @@ async function main(): Promise<void> {
       continue;
     }
 
-    const out = path.join(OUT_DIR, `${clipId}.wav`);
-    if (!force && await fs.access(out).then(() => true, () => false)) {
-      console.log(`  ${c.dim("have")}  ${clipId}`);
-      skipped++;
-      continue;
+    let target = clipId;
+    let out = path.join(OUT_DIR, `${target}.wav`);
+    const taken = async (p: string) => fs.access(p).then(() => true, () => false);
+
+    if (!force && (await taken(out))) {
+      if (!shift) {
+        console.log(`  ${c.dim("have")}  ${clipId}`);
+        skipped++;
+        continue;
+      }
+      // Walk the take letter forward until the name is free. Processing in
+      // sorted order means an incoming a,b pair stays a contiguous pair.
+      const card = clipId.slice(0, -1);
+      let moved = false;
+      for (let code = "a".charCodeAt(0); code <= "z".charCodeAt(0); code++) {
+        const candidate = `${card}${String.fromCharCode(code)}`;
+        const p = path.join(OUT_DIR, `${candidate}.wav`);
+        if (!(await taken(p))) {
+          target = candidate;
+          out = p;
+          moved = true;
+          break;
+        }
+      }
+      if (!moved) {
+        console.log(`  ${c.yellow("full")}  ${clipId} — no free take letter`);
+        skipped++;
+        continue;
+      }
     }
 
     // -ar 16000 -ac 1: what the pipeline and every ASR provider actually want.
@@ -109,11 +139,12 @@ async function main(): Promise<void> {
     // A clip under two seconds is almost always a misfire — the recorder was
     // stopped early, or the file is silence. Better to catch it now than to
     // find a dead row in the evaluation on the day.
+    const renamed = target === clipId ? "" : c.dim(`  <- ${clipId}`);
     if (secs !== null && secs < 2) {
-      console.log(`  ${c.red("thin")}  ${clipId}  ${c.dim(label)}`);
-      short.push(clipId);
+      console.log(`  ${c.red("thin")}  ${target}  ${c.dim(label)}${renamed}`);
+      short.push(target);
     } else {
-      console.log(`  ${c.green("ok")}    ${clipId}  ${c.dim(label)}`);
+      console.log(`  ${c.green("ok")}    ${target}  ${c.dim(label)}${renamed}`);
     }
     ok++;
   }

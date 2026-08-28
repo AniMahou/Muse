@@ -1,0 +1,43 @@
+{
+  "clipId": "clip-63-a",
+  "audioFile": "clip-63-a.wav",
+  "transcriptBn": "জামান স্টোরে মেরিল পেট্রোলিয়াম জেলি আড়াই ডজন লাগবে, আর দোকানদার ফ্রি স্যাম্পল চাচ্ছে",
+  "observations": [
+    {
+      "type": "demand_signal",
+      "outletId": "OUT-1198",
+      "skuId": "SKU-704",
+      "competitorBrand": null,
+      "quantity": 30,
+      "unit": "piece",
+      "priceDelta": null,
+      "severity": "medium",
+      "verbatimBn": "জামান স্টোরে মেরিল পেট্রোলিয়াম জেলি আড়াই ডজন লাগবে, আর দোকানদার ফ্রি স্যাম্পল চাচ্ছে"
+    },
+    {
+      "type": "retailer_complaint",
+      "outletId": "OUT-1198",
+      "skuId": null,
+      "competitorBrand": null,
+      "quantity": null,
+      "unit": null,
+      "priceDelta": null,
+      "severity": "medium",
+      "verbatimBn": "জামান স্টোরে মেরিল পেট্রোলিয়াম জেলি আড়াই ডজন লাগবে, আর দোকানদার ফ্রি স্যাম্পল চাচ্ছে"
+    }
+  ],
+  "outletId": "OUT-1198",
+  "geo": {
+    "lat": 23.780655,
+    "lng": 90.407364
+  },
+  "meta": {
+    "dialect": "dhaka",
+    "noise": "unknown",
+    "speakerId": "reader",
+    "referenceSource": "heard",
+    "labelledBy": "muse-team",
+    "labelledAt": "2026-08-28T22:10:06.407Z",
+    "promotedFromCorrection": false
+  }
+}

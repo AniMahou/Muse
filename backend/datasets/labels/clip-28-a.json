@@ -1,0 +1,31 @@
+{
+  "clipId": "clip-28-a",
+  "audioFile": "clip-28-a.wav",
+  "transcriptBn": "",
+  "observations": [
+    {
+      "type": "competitor_promo",
+      "outletId": "OUT-1184",
+      "skuId": null,
+      "competitorBrand": "COMP-WHITEPLUS",
+      "quantity": null,
+      "unit": null,
+      "priceDelta": -10,
+      "severity": "high",
+      "verbatimBn": ""
+    }
+  ],
+  "outletId": "OUT-1184",
+  "geo": {
+    "lat": 23.780741,
+    "lng": 90.407441
+  },
+  "meta": {
+    "dialect": "dhaka",
+    "noise": "unknown",
+    "referenceSource": "heard",
+    "labelledBy": "muse-team",
+    "labelledAt": "2026-08-28T22:10:06.406Z",
+    "promotedFromCorrection": false
+  }
+}

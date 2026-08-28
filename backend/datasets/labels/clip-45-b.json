@@ -1,0 +1,32 @@
+{
+  "clipId": "clip-45-b",
+  "audioFile": "clip-45-b.wav",
+  "transcriptBn": "মিলন স্টোরে পেপসোডেন্ট টুথপেস্ট কুড়ি পিস লাগবে",
+  "observations": [
+    {
+      "type": "demand_signal",
+      "outletId": "OUT-1195",
+      "skuId": "SKU-701",
+      "competitorBrand": null,
+      "quantity": 20,
+      "unit": "piece",
+      "priceDelta": null,
+      "severity": "medium",
+      "verbatimBn": "মিলন স্টোরে পেপসোডেন্ট টুথপেস্ট কুড়ি পিস লাগবে"
+    }
+  ],
+  "outletId": "OUT-1195",
+  "geo": {
+    "lat": 23.780585,
+    "lng": 90.407401
+  },
+  "meta": {
+    "dialect": "dhaka",
+    "noise": "unknown",
+    "speakerId": "reader",
+    "referenceSource": "heard",
+    "labelledBy": "muse-team",
+    "labelledAt": "2026-08-28T22:10:06.407Z",
+    "promotedFromCorrection": false
+  }
+}

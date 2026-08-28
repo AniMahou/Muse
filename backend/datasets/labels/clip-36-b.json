@@ -1,0 +1,32 @@
+{
+  "clipId": "clip-36-b",
+  "audioFile": "clip-36-b.wav",
+  "transcriptBn": "ভাই ভাই ট্রেডার্সে ইসপাহানি মির্জাপুর চা দেড় ডজন লাগবে",
+  "observations": [
+    {
+      "type": "demand_signal",
+      "outletId": "OUT-1186",
+      "skuId": "SKU-703",
+      "competitorBrand": null,
+      "quantity": 18,
+      "unit": "piece",
+      "priceDelta": null,
+      "severity": "medium",
+      "verbatimBn": "ভাই ভাই ট্রেডার্সে ইসপাহানি মির্জাপুর চা দেড় ডজন লাগবে"
+    }
+  ],
+  "outletId": "OUT-1186",
+  "geo": {
+    "lat": 23.780701,
+    "lng": 90.407268
+  },
+  "meta": {
+    "dialect": "dhaka",
+    "noise": "unknown",
+    "speakerId": "reader",
+    "referenceSource": "heard",
+    "labelledBy": "muse-team",
+    "labelledAt": "2026-08-28T22:10:06.406Z",
+    "promotedFromCorrection": false
+  }
+}

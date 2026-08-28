@@ -1,0 +1,43 @@
+{
+  "clipId": "clip-53-b",
+  "audioFile": "clip-53-b.wav",
+  "transcriptBn": "বিসমিল্লাহ এন্টারপ্রাইজে প্যারাসুট তেল আড়াই ডজন লাগবে, আর মেরিল শেষ",
+  "observations": [
+    {
+      "type": "demand_signal",
+      "outletId": "OUT-1188",
+      "skuId": "SKU-708",
+      "competitorBrand": null,
+      "quantity": 30,
+      "unit": "piece",
+      "priceDelta": null,
+      "severity": "medium",
+      "verbatimBn": "বিসমিল্লাহ এন্টারপ্রাইজে প্যারাসুট তেল আড়াই ডজন লাগবে, আর মেরিল শেষ"
+    },
+    {
+      "type": "stock_out",
+      "outletId": "OUT-1188",
+      "skuId": "SKU-704",
+      "competitorBrand": null,
+      "quantity": null,
+      "unit": null,
+      "priceDelta": null,
+      "severity": "high",
+      "verbatimBn": "বিসমিল্লাহ এন্টারপ্রাইজে প্যারাসুট তেল আড়াই ডজন লাগবে, আর মেরিল শেষ"
+    }
+  ],
+  "outletId": "OUT-1188",
+  "geo": {
+    "lat": 23.780544,
+    "lng": 90.407529
+  },
+  "meta": {
+    "dialect": "dhaka",
+    "noise": "unknown",
+    "speakerId": "reader",
+    "referenceSource": "heard",
+    "labelledBy": "muse-team",
+    "labelledAt": "2026-08-28T22:10:06.407Z",
+    "promotedFromCorrection": false
+  }
+}

@@ -1,0 +1,32 @@
+{
+  "clipId": "clip-46-a",
+  "audioFile": "clip-46-a.wav",
+  "transcriptBn": "তারা মার্টে মিস্টার নুডলসের বাই-ওয়ান-গেট-ওয়ান অফার চলতেছে",
+  "observations": [
+    {
+      "type": "competitor_promo",
+      "outletId": "OUT-1196",
+      "skuId": null,
+      "competitorBrand": "COMP-MRNOODLES",
+      "quantity": null,
+      "unit": null,
+      "priceDelta": null,
+      "severity": "medium",
+      "verbatimBn": "তারা মার্টে মিস্টার নুডলসের বাই-ওয়ান-গেট-ওয়ান অফার চলতেছে"
+    }
+  ],
+  "outletId": "OUT-1196",
+  "geo": {
+    "lat": 23.78051,
+    "lng": 90.407405
+  },
+  "meta": {
+    "dialect": "dhaka",
+    "noise": "unknown",
+    "speakerId": "reader",
+    "referenceSource": "heard",
+    "labelledBy": "muse-team",
+    "labelledAt": "2026-08-28T22:10:06.407Z",
+    "promotedFromCorrection": false
+  }
+}

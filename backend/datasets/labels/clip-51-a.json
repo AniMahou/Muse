@@ -1,0 +1,43 @@
+{
+  "clipId": "clip-51-a",
+  "audioFile": "clip-51-a.wav",
+  "transcriptBn": "ভাই ভাই ট্রেডার্সে ইসপাহানি চা দেড় ডজন লাগবে, আর ফ্রেশ তেলের দাম কমছে",
+  "observations": [
+    {
+      "type": "demand_signal",
+      "outletId": "OUT-1186",
+      "skuId": "SKU-703",
+      "competitorBrand": null,
+      "quantity": 18,
+      "unit": "piece",
+      "priceDelta": null,
+      "severity": "medium",
+      "verbatimBn": "ভাই ভাই ট্রেডার্সে ইসপাহানি চা দেড় ডজন লাগবে, আর ফ্রেশ তেলের দাম কমছে"
+    },
+    {
+      "type": "price_change",
+      "outletId": "OUT-1186",
+      "skuId": "SKU-707",
+      "competitorBrand": null,
+      "quantity": null,
+      "unit": null,
+      "priceDelta": null,
+      "severity": "medium",
+      "verbatimBn": "ভাই ভাই ট্রেডার্সে ইসপাহানি চা দেড় ডজন লাগবে, আর ফ্রেশ তেলের দাম কমছে"
+    }
+  ],
+  "outletId": "OUT-1186",
+  "geo": {
+    "lat": 23.780691,
+    "lng": 90.407519
+  },
+  "meta": {
+    "dialect": "dhaka",
+    "noise": "unknown",
+    "speakerId": "reader",
+    "referenceSource": "heard",
+    "labelledBy": "muse-team",
+    "labelledAt": "2026-08-28T22:10:06.407Z",
+    "promotedFromCorrection": false
+  }
+}

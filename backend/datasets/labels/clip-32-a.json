@@ -1,0 +1,31 @@
+{
+  "clipId": "clip-32-a",
+  "audioFile": "clip-32-a.wav",
+  "transcriptBn": "",
+  "observations": [
+    {
+      "type": "demand_signal",
+      "outletId": "OUT-1184",
+      "skuId": "SKU-501",
+      "competitorBrand": null,
+      "quantity": 3.75,
+      "unit": "carton",
+      "priceDelta": null,
+      "severity": "medium",
+      "verbatimBn": ""
+    }
+  ],
+  "outletId": "OUT-1184",
+  "geo": {
+    "lat": 23.780695,
+    "lng": 90.40725
+  },
+  "meta": {
+    "dialect": "dhaka",
+    "noise": "unknown",
+    "referenceSource": "heard",
+    "labelledBy": "muse-team",
+    "labelledAt": "2026-08-28T22:10:06.406Z",
+    "promotedFromCorrection": false
+  }
+}

@@ -1,0 +1,43 @@
+{
+  "clipId": "clip-60-a",
+  "audioFile": "clip-60-a.wav",
+  "transcriptBn": "মিলন স্টোরে চাকা ওয়াশিং পাউডার কুড়ি পিস লাগবে, আর হুইল নতুন অফার দিছে",
+  "observations": [
+    {
+      "type": "demand_signal",
+      "outletId": "OUT-1195",
+      "skuId": "SKU-714",
+      "competitorBrand": null,
+      "quantity": 20,
+      "unit": "piece",
+      "priceDelta": null,
+      "severity": "medium",
+      "verbatimBn": "মিলন স্টোরে চাকা ওয়াশিং পাউডার কুড়ি পিস লাগবে, আর হুইল নতুন অফার দিছে"
+    },
+    {
+      "type": "competitor_promo",
+      "outletId": "OUT-1195",
+      "skuId": null,
+      "competitorBrand": "COMP-WHEEL",
+      "quantity": null,
+      "unit": null,
+      "priceDelta": null,
+      "severity": "medium",
+      "verbatimBn": "মিলন স্টোরে চাকা ওয়াশিং পাউডার কুড়ি পিস লাগবে, আর হুইল নতুন অফার দিছে"
+    }
+  ],
+  "outletId": "OUT-1195",
+  "geo": {
+    "lat": 23.780576,
+    "lng": 90.407351
+  },
+  "meta": {
+    "dialect": "dhaka",
+    "noise": "unknown",
+    "speakerId": "reader",
+    "referenceSource": "heard",
+    "labelledBy": "muse-team",
+    "labelledAt": "2026-08-28T22:10:06.407Z",
+    "promotedFromCorrection": false
+  }
+}

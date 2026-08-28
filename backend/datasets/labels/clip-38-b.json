@@ -1,0 +1,32 @@
+{
+  "clipId": "clip-38-b",
+  "audioFile": "clip-38-b.wav",
+  "transcriptBn": "বিসমিল্লাহ এন্টারপ্রাইজে রাঁধুনি হালিম মিক্স সাড়ে তিন কার্টন লাগবে",
+  "observations": [
+    {
+      "type": "demand_signal",
+      "outletId": "OUT-1188",
+      "skuId": "SKU-705",
+      "competitorBrand": null,
+      "quantity": 3.5,
+      "unit": "carton",
+      "priceDelta": null,
+      "severity": "medium",
+      "verbatimBn": "বিসমিল্লাহ এন্টারপ্রাইজে রাঁধুনি হালিম মিক্স সাড়ে তিন কার্টন লাগবে"
+    }
+  ],
+  "outletId": "OUT-1188",
+  "geo": {
+    "lat": 23.780552,
+    "lng": 90.407277
+  },
+  "meta": {
+    "dialect": "dhaka",
+    "noise": "unknown",
+    "speakerId": "reader",
+    "referenceSource": "heard",
+    "labelledBy": "muse-team",
+    "labelledAt": "2026-08-28T22:10:06.406Z",
+    "promotedFromCorrection": false
+  }
+}

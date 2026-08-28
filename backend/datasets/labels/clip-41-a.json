@@ -1,0 +1,32 @@
+{
+  "clipId": "clip-41-a",
+  "audioFile": "clip-41-a.wav",
+  "transcriptBn": "সিকদার মার্টে ফ্রেশ সয়াবিন তেল সোয়া দুই ডজন লাগবে",
+  "observations": [
+    {
+      "type": "demand_signal",
+      "outletId": "OUT-1191",
+      "skuId": "SKU-707",
+      "competitorBrand": null,
+      "quantity": 27,
+      "unit": "piece",
+      "priceDelta": null,
+      "severity": "medium",
+      "verbatimBn": "সিকদার মার্টে ফ্রেশ সয়াবিন তেল সোয়া দুই ডজন লাগবে"
+    }
+  ],
+  "outletId": "OUT-1191",
+  "geo": {
+    "lat": 23.780579,
+    "lng": 90.407383
+  },
+  "meta": {
+    "dialect": "dhaka",
+    "noise": "unknown",
+    "speakerId": "reader",
+    "referenceSource": "heard",
+    "labelledBy": "muse-team",
+    "labelledAt": "2026-08-28T22:10:06.407Z",
+    "promotedFromCorrection": false
+  }
+}

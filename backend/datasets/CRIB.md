@@ -28,6 +28,21 @@ prefer `✓` rows when writing cards you also intend to demo.
 | `SKU-505` | Clear Shampoo | Clear | 180ml | Unilever | ✓ |
 | `SKU-503` | Harpic Toilet Cleaner | Harpic | 500ml | Reckitt | ✗ |
 | `SKU-601` | Colgate Toothpaste | Colgate | 100g | Colgate | ✗ |
+| `SKU-700` | Taaza Tea | Taaza | 400g | Unilever | ✓ |
+| `SKU-701` | Pepsodent Toothpaste | Pepsodent | 100g | Unilever | ✓ |
+| `SKU-702` | Closeup Toothpaste | Closeup | 100g | Unilever | ✓ |
+| `SKU-703` | Ispahani Mirzapore Tea | Ispahani | 400g | Ispahani | ✓ |
+| `SKU-704` | Meril Petroleum Jelly | Meril | 100ml | Square | ✓ |
+| `SKU-705` | Radhuni Halim Mix | Radhuni | 200g | Square | ✓ |
+| `SKU-706` | Bashundhara Tissue | Bashundhara | 100 pcs | Bashundhara | ✓ |
+| `SKU-707` | Fresh Soybean Oil | Fresh | 1L | Meghna | ✓ |
+| `SKU-708` | Parachute Coconut Oil | Parachute | 200ml | Marico | ✓ |
+| `SKU-709` | Olympic Energy Biscuit | Olympic | 100g | Olympic | ✓ |
+| `SKU-710` | Cocola Noodles | Cocola | 70g | Cocola | ✓ |
+| `SKU-711` | Mojo | Mojo | 250ml | Akij | ✓ |
+| `SKU-712` | Clemon | Clemon | 250ml | Akij | ✓ |
+| `SKU-713` | Tibet Pomade | Tibet | 50g | Kohinoor | ✓ |
+| `SKU-714` | Chaka Washing Powder | Chaka | 500g | Kallol | ✓ |
 
 ## Competitors — the `competitor_brand` column
 
@@ -39,6 +54,10 @@ Note the column these belong in. A competitor id goes in `competitor_brand`, nev
 
 | competitor_brand | name | manufacturer |
 | --- | --- | --- |
+| `COMP-MRNOODLES` | Mr. Noodles | Pran |
+| `COMP-MAGGI` | Maggi Noodles | Nestle |
+| `COMP-BOMBAY` | Bombay Sweets | — |
+| `COMP-ARIEL` | Ariel Powder | P&G |
 | `COMP-WHEEL` | Wheel | Unilever |
 | `COMP-WHITEPLUS` | White Plus | — |
 | `COMP-RIN` | Rin Powder | Unilever |
@@ -55,6 +74,21 @@ stage 4 exists.
 | `OUT-1183` | Rahman Store | 23.78069, 90.40748 |
 | `OUT-1184` | New Alam Enterprise | 23.78046, 90.40745 |
 | `OUT-1185` | Shanto General Store | 23.78100, 90.40770 |
+| `OUT-1186` | Bhai Bhai Traders | 23.78170, 90.40700 |
+| `OUT-1187` | Mayer Doa Store | 23.77970, 90.40860 |
+| `OUT-1188` | Bismillah Enterprise | 23.78220, 90.40820 |
+| `OUT-1189` | Jononi General Store | 23.77920, 90.40630 |
+| `OUT-1190` | Tasmia Traders | 23.78130, 90.40930 |
+| `OUT-1191` | Sikder Mart | 23.77880, 90.40800 |
+| `OUT-1192` | Rony Store | 23.78270, 90.40610 |
+| `OUT-1193` | Medina Enterprise | 23.78000, 90.40570 |
+| `OUT-1194` | Al-Amin Traders | 23.78190, 90.40960 |
+| `OUT-1195` | Milon Store | 23.77840, 90.40890 |
+| `OUT-1196` | Tara Mart | 23.78310, 90.40780 |
+| `OUT-1197` | Haque Enterprise | 23.77950, 90.40980 |
+| `OUT-1198` | Zaman Store | 23.78250, 90.40530 |
+| `OUT-1199` | Jannat General Store | 23.77810, 90.40670 |
+| `OUT-1200` | Kazi Brothers | 23.78150, 90.40480 |
 
 Recording GPS for the whole set: `23.7806, 90.4074` — inside the cluster.
 You never type coordinates; `npm run labels:build` fills them from `outlet_id`.

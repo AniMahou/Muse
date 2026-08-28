@@ -1,0 +1,43 @@
+{
+  "clipId": "clip-58-a",
+  "audioFile": "clip-58-a.wav",
+  "transcriptBn": "মদিনা এন্টারপ্রাইজে ক্লোজআপের দাম তিন টাকা কমছে, সাড়ে চার কার্টন লাগবে",
+  "observations": [
+    {
+      "type": "price_change",
+      "outletId": "OUT-1193",
+      "skuId": "SKU-702",
+      "competitorBrand": null,
+      "quantity": null,
+      "unit": null,
+      "priceDelta": -3,
+      "severity": "medium",
+      "verbatimBn": "মদিনা এন্টারপ্রাইজে ক্লোজআপের দাম তিন টাকা কমছে, সাড়ে চার কার্টন লাগবে"
+    },
+    {
+      "type": "demand_signal",
+      "outletId": "OUT-1193",
+      "skuId": "SKU-702",
+      "competitorBrand": null,
+      "quantity": 4.5,
+      "unit": "carton",
+      "priceDelta": null,
+      "severity": "medium",
+      "verbatimBn": "মদিনা এন্টারপ্রাইজে ক্লোজআপের দাম তিন টাকা কমছে, সাড়ে চার কার্টন লাগবে"
+    }
+  ],
+  "outletId": "OUT-1193",
+  "geo": {
+    "lat": 23.780474,
+    "lng": 90.40725
+  },
+  "meta": {
+    "dialect": "dhaka",
+    "noise": "unknown",
+    "speakerId": "reader",
+    "referenceSource": "heard",
+    "labelledBy": "muse-team",
+    "labelledAt": "2026-08-28T22:10:06.407Z",
+    "promotedFromCorrection": false
+  }
+}

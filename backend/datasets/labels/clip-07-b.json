@@ -1,0 +1,32 @@
+{
+  "clipId": "clip-07-b",
+  "audioFile": "clip-07-b.wav",
+  "transcriptBn": "নিউ আলম এন্টারপ্রাইজে সানসিল্ক শ্যাম্পু আড়াই ডজন লাগবে",
+  "observations": [
+    {
+      "type": "demand_signal",
+      "outletId": "OUT-1184",
+      "skuId": "SKU-504",
+      "competitorBrand": null,
+      "quantity": 30,
+      "unit": "piece",
+      "priceDelta": null,
+      "severity": "medium",
+      "verbatimBn": "নিউ আলম এন্টারপ্রাইজে সানসিল্ক শ্যাম্পু আড়াই ডজন লাগবে"
+    }
+  ],
+  "outletId": "OUT-1184",
+  "geo": {
+    "lat": 23.780592,
+    "lng": 90.407464
+  },
+  "meta": {
+    "dialect": "dhaka",
+    "noise": "unknown",
+    "speakerId": "reader",
+    "referenceSource": "heard",
+    "labelledBy": "muse-team",
+    "labelledAt": "2026-08-28T22:10:06.405Z",
+    "promotedFromCorrection": false
+  }
+}

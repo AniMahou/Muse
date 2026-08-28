@@ -1,0 +1,32 @@
+{
+  "clipId": "clip-40-b",
+  "audioFile": "clip-40-b.wav",
+  "transcriptBn": "তাসমিয়া ট্রেডার্সের দোকানদার বলতেছে ম্যাগি নুডলসের প্যাকেট খোলা আসতেছে",
+  "observations": [
+    {
+      "type": "retailer_complaint",
+      "outletId": "OUT-1190",
+      "skuId": null,
+      "competitorBrand": "COMP-MAGGI",
+      "quantity": null,
+      "unit": null,
+      "priceDelta": null,
+      "severity": "medium",
+      "verbatimBn": "তাসমিয়া ট্রেডার্সের দোকানদার বলতেছে ম্যাগি নুডলসের প্যাকেট খোলা আসতেছে"
+    }
+  ],
+  "outletId": "OUT-1190",
+  "geo": {
+    "lat": 23.780655,
+    "lng": 90.407378
+  },
+  "meta": {
+    "dialect": "dhaka",
+    "noise": "unknown",
+    "speakerId": "reader",
+    "referenceSource": "heard",
+    "labelledBy": "muse-team",
+    "labelledAt": "2026-08-28T22:10:06.407Z",
+    "promotedFromCorrection": false
+  }
+}

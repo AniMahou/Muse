@@ -1,0 +1,43 @@
+{
+  "clipId": "clip-18-b",
+  "audioFile": "clip-18-b.wav",
+  "transcriptBn": "নিউ আলম এ সানসিল্ক শ্যাম্পু আড়াই ডজন লাগবে, আর ক্লিয়ার শ্যাম্পু শেষ",
+  "observations": [
+    {
+      "type": "demand_signal",
+      "outletId": "OUT-1184",
+      "skuId": "SKU-504",
+      "competitorBrand": null,
+      "quantity": 30,
+      "unit": "piece",
+      "priceDelta": null,
+      "severity": "medium",
+      "verbatimBn": "নিউ আলম এ সানসিল্ক শ্যাম্পু আড়াই ডজন লাগবে, আর ক্লিয়ার শ্যাম্পু শেষ"
+    },
+    {
+      "type": "stock_out",
+      "outletId": "OUT-1184",
+      "skuId": "SKU-505",
+      "competitorBrand": null,
+      "quantity": null,
+      "unit": null,
+      "priceDelta": null,
+      "severity": "high",
+      "verbatimBn": "নিউ আলম এ সানসিল্ক শ্যাম্পু আড়াই ডজন লাগবে, আর ক্লিয়ার শ্যাম্পু শেষ"
+    }
+  ],
+  "outletId": "OUT-1184",
+  "geo": {
+    "lat": 23.78063,
+    "lng": 90.407304
+  },
+  "meta": {
+    "dialect": "dhaka",
+    "noise": "unknown",
+    "speakerId": "reader",
+    "referenceSource": "heard",
+    "labelledBy": "muse-team",
+    "labelledAt": "2026-08-28T22:10:06.406Z",
+    "promotedFromCorrection": false
+  }
+}

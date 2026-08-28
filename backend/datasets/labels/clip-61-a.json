@@ -1,0 +1,43 @@
+{
+  "clipId": "clip-61-a",
+  "audioFile": "clip-61-a.wav",
+  "transcriptBn": "তারা মার্টে ফ্রেশ সয়াবিন তেল দুই হালি লাগবে, আর দোকানদার লাভ নিয়ে রাগ করতেছে",
+  "observations": [
+    {
+      "type": "demand_signal",
+      "outletId": "OUT-1196",
+      "skuId": "SKU-707",
+      "competitorBrand": null,
+      "quantity": 8,
+      "unit": "piece",
+      "priceDelta": null,
+      "severity": "medium",
+      "verbatimBn": "তারা মার্টে ফ্রেশ সয়াবিন তেল দুই হালি লাগবে, আর দোকানদার লাভ নিয়ে রাগ করতেছে"
+    },
+    {
+      "type": "retailer_complaint",
+      "outletId": "OUT-1196",
+      "skuId": null,
+      "competitorBrand": null,
+      "quantity": null,
+      "unit": null,
+      "priceDelta": null,
+      "severity": "medium",
+      "verbatimBn": "তারা মার্টে ফ্রেশ সয়াবিন তেল দুই হালি লাগবে, আর দোকানদার লাভ নিয়ে রাগ করতেছে"
+    }
+  ],
+  "outletId": "OUT-1196",
+  "geo": {
+    "lat": 23.780502,
+    "lng": 90.407356
+  },
+  "meta": {
+    "dialect": "dhaka",
+    "noise": "unknown",
+    "speakerId": "reader",
+    "referenceSource": "heard",
+    "labelledBy": "muse-team",
+    "labelledAt": "2026-08-28T22:10:06.407Z",
+    "promotedFromCorrection": false
+  }
+}

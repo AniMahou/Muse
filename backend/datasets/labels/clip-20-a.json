@@ -1,0 +1,54 @@
+{
+  "clipId": "clip-20-a",
+  "audioFile": "clip-20-a.wav",
+  "transcriptBn": "বিজয় স্টোরে সার্ফ এক্সেল তিন কার্টন আর প্রাণ চানাচুর দুই ডজন লাগবে, আর পোস্টার টা ছিঁড়া",
+  "observations": [
+    {
+      "type": "demand_signal",
+      "outletId": "OUT-1182",
+      "skuId": "SKU-501",
+      "competitorBrand": null,
+      "quantity": 3,
+      "unit": "carton",
+      "priceDelta": null,
+      "severity": "medium",
+      "verbatimBn": "বিজয় স্টোরে সার্ফ এক্সেল তিন কার্টন আর প্রাণ চানাচুর দুই ডজন লাগবে, আর পোস্টার টা ছিঁড়া"
+    },
+    {
+      "type": "demand_signal",
+      "outletId": "OUT-1182",
+      "skuId": "SKU-420",
+      "competitorBrand": null,
+      "quantity": 24,
+      "unit": "piece",
+      "priceDelta": null,
+      "severity": "medium",
+      "verbatimBn": "বিজয় স্টোরে সার্ফ এক্সেল তিন কার্টন আর প্রাণ চানাচুর দুই ডজন লাগবে, আর পোস্টার টা ছিঁড়া"
+    },
+    {
+      "type": "posm_issue",
+      "outletId": "OUT-1182",
+      "skuId": null,
+      "competitorBrand": null,
+      "quantity": null,
+      "unit": null,
+      "priceDelta": null,
+      "severity": "low",
+      "verbatimBn": "বিজয় স্টোরে সার্ফ এক্সেল তিন কার্টন আর প্রাণ চানাচুর দুই ডজন লাগবে, আর পোস্টার টা ছিঁড়া"
+    }
+  ],
+  "outletId": "OUT-1182",
+  "geo": {
+    "lat": 23.780731,
+    "lng": 90.407405
+  },
+  "meta": {
+    "dialect": "dhaka",
+    "noise": "unknown",
+    "speakerId": "reader",
+    "referenceSource": "heard",
+    "labelledBy": "muse-team",
+    "labelledAt": "2026-08-28T22:10:06.406Z",
+    "promotedFromCorrection": false
+  }
+}

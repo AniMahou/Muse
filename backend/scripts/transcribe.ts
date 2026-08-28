@@ -52,7 +52,15 @@ function csvField(v: string): string {
   return /[",\n]/.test(v) ? `"${v.replace(/"/g, '""')}"` : v;
 }
 
-const CARDS = path.resolve(process.cwd(), "../docs/CARDS.md");
+// Cards live in more than one file now: the original set, the spontaneous
+// round-two set, and the batch a second collector wrote. Later files win on a
+// clash, because a card recorded twice was recorded against whichever text the
+// speaker actually had in front of them — which the audio settles, not us.
+const CARD_FILES = [
+  "../docs/CARDS.md",
+  "../docs/jarif.md",
+  "../docs/CARDS-2.md",
+].map((f) => path.resolve(process.cwd(), f));
 
 /**
  * Reuse each card's scripted line as the reference transcript.
@@ -69,13 +77,18 @@ const CARDS = path.resolve(process.cwd(), "../docs/CARDS.md");
  * that the speaker really did say what the card told them to.
  */
 async function readCards(): Promise<Map<number, string>> {
-  const text = await fs.readFile(CARDS, "utf8").catch(() => "");
   const out = new Map<number, string>();
-  const sections = text.split(/^### Card /m).slice(1);
-  for (const sec of sections) {
-    const num = Number(/^(\d+)/.exec(sec)?.[1]);
-    const quote = /^> (.+)$/m.exec(sec)?.[1];
-    if (Number.isFinite(num) && quote) out.set(num, quote.trim());
+  for (const file of CARD_FILES) {
+    const text = await fs.readFile(file, "utf8").catch(() => "");
+    for (const sec of text.split(/^### Card /m).slice(1)) {
+      const num = Number(/^(\d+)/.exec(sec)?.[1]);
+      const quote = /^> (.+)$/m.exec(sec)?.[1];
+      // A spontaneous card carries no Bangla line on purpose — the speaker was
+      // meant to phrase it themselves. Those clips simply get no script
+      // reference and drop out of the word error rate; field accuracy is
+      // unaffected, since it scores against the expected observations.
+      if (Number.isFinite(num) && quote) out.set(num, quote.trim());
+    }
   }
   return out;
 }
@@ -112,7 +125,7 @@ async function main(): Promise<void> {
   if (fromCards) {
     const cards = await readCards();
     if (cards.size === 0) {
-      console.error(c.yellow(`\n  Could not read ${CARDS}\n`));
+      console.error(c.yellow(`\n  Could not read any card file:\n    ${CARD_FILES.join("\n    ")}\n`));
       process.exit(1);
     }
     let filled = 0;

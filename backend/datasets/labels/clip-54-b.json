@@ -1,0 +1,43 @@
+{
+  "clipId": "clip-54-b",
+  "audioFile": "clip-54-b.wav",
+  "transcriptBn": "জননী জেনারেল স্টোরে অলিম্পিক বিস্কুটের দাম পাঁচ টাকা বাড়ছে, দোকানদার অভিযোগ করতেছে",
+  "observations": [
+    {
+      "type": "price_change",
+      "outletId": "OUT-1189",
+      "skuId": "SKU-709",
+      "competitorBrand": null,
+      "quantity": null,
+      "unit": null,
+      "priceDelta": 5,
+      "severity": "medium",
+      "verbatimBn": "জননী জেনারেল স্টোরে অলিম্পিক বিস্কুটের দাম পাঁচ টাকা বাড়ছে, দোকানদার অভিযোগ করতেছে"
+    },
+    {
+      "type": "retailer_complaint",
+      "outletId": "OUT-1189",
+      "skuId": "SKU-709",
+      "competitorBrand": null,
+      "quantity": null,
+      "unit": null,
+      "priceDelta": null,
+      "severity": "medium",
+      "verbatimBn": "জননী জেনারেল স্টোরে অলিম্পিক বিস্কুটের দাম পাঁচ টাকা বাড়ছে, দোকানদার অভিযোগ করতেছে"
+    }
+  ],
+  "outletId": "OUT-1189",
+  "geo": {
+    "lat": 23.78047,
+    "lng": 90.407534
+  },
+  "meta": {
+    "dialect": "dhaka",
+    "noise": "unknown",
+    "speakerId": "reader",
+    "referenceSource": "heard",
+    "labelledBy": "muse-team",
+    "labelledAt": "2026-08-28T22:10:06.407Z",
+    "promotedFromCorrection": false
+  }
+}

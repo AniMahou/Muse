@@ -1,0 +1,32 @@
+{
+  "clipId": "clip-03-a",
+  "audioFile": "clip-03-a.wav",
+  "transcriptBn": "নিউ আলম এন্টারপ্রাইজে হুইল নতুন অফার দিছে, পাঁচ টাকা কম",
+  "observations": [
+    {
+      "type": "competitor_promo",
+      "outletId": "OUT-1184",
+      "skuId": null,
+      "competitorBrand": "COMP-WHEEL",
+      "quantity": null,
+      "unit": null,
+      "priceDelta": -5,
+      "severity": "high",
+      "verbatimBn": "নিউ আলম এন্টারপ্রাইজে হুইল নতুন অফার দিছে, পাঁচ টাকা কম"
+    }
+  ],
+  "outletId": "OUT-1184",
+  "geo": {
+    "lat": 23.780586,
+    "lng": 90.407446
+  },
+  "meta": {
+    "dialect": "dhaka",
+    "noise": "unknown",
+    "speakerId": "reader",
+    "referenceSource": "heard",
+    "labelledBy": "muse-team",
+    "labelledAt": "2026-08-28T22:10:06.404Z",
+    "promotedFromCorrection": false
+  }
+}

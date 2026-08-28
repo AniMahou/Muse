@@ -1,0 +1,32 @@
+{
+  "clipId": "clip-08-a",
+  "audioFile": "clip-08-a.wav",
+  "transcriptBn": "শান্ত জেনারেল স্টোরে সার্ফ এক্সেল পৌনে তিন কার্টন লাগবে",
+  "observations": [
+    {
+      "type": "demand_signal",
+      "outletId": "OUT-1185",
+      "skuId": "SKU-501",
+      "competitorBrand": null,
+      "quantity": 2.75,
+      "unit": "carton",
+      "priceDelta": null,
+      "severity": "medium",
+      "verbatimBn": "শান্ত জেনারেল স্টোরে সার্ফ এক্সেল পৌনে তিন কার্টন লাগবে"
+    }
+  ],
+  "outletId": "OUT-1185",
+  "geo": {
+    "lat": 23.780517,
+    "lng": 90.407469
+  },
+  "meta": {
+    "dialect": "dhaka",
+    "noise": "unknown",
+    "speakerId": "reader",
+    "referenceSource": "heard",
+    "labelledBy": "muse-team",
+    "labelledAt": "2026-08-28T22:10:06.405Z",
+    "promotedFromCorrection": false
+  }
+}

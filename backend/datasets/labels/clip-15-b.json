@@ -1,0 +1,32 @@
+{
+  "clipId": "clip-15-b",
+  "audioFile": "clip-15-b.wav",
+  "transcriptBn": "নিউ আলম এন্টারপ্রাইজে লাক্স সাবান কুড়ি পিস লাগবে",
+  "observations": [
+    {
+      "type": "demand_signal",
+      "outletId": "OUT-1184",
+      "skuId": "SKU-502",
+      "competitorBrand": null,
+      "quantity": 20,
+      "unit": "piece",
+      "priceDelta": null,
+      "severity": "medium",
+      "verbatimBn": "নিউ আলম এন্টারপ্রাইজে লাক্স সাবান কুড়ি পিস লাগবে"
+    }
+  ],
+  "outletId": "OUT-1184",
+  "geo": {
+    "lat": 23.780551,
+    "lng": 90.407291
+  },
+  "meta": {
+    "dialect": "dhaka",
+    "noise": "unknown",
+    "speakerId": "reader",
+    "referenceSource": "heard",
+    "labelledBy": "muse-team",
+    "labelledAt": "2026-08-28T22:10:06.406Z",
+    "promotedFromCorrection": false
+  }
+}

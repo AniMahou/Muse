@@ -1,0 +1,32 @@
+{
+  "clipId": "clip-10-b",
+  "audioFile": "clip-10-b.wav",
+  "transcriptBn": "রহমান স্টোরে ক্লিয়ার শ্যাম্পু দুই হালি লাগবে",
+  "observations": [
+    {
+      "type": "demand_signal",
+      "outletId": "OUT-1183",
+      "skuId": "SKU-505",
+      "competitorBrand": null,
+      "quantity": 8,
+      "unit": "piece",
+      "priceDelta": null,
+      "severity": "medium",
+      "verbatimBn": "রহমান স্টোরে ক্লিয়ার শ্যাম্পু দুই হালি লাগবে"
+    }
+  ],
+  "outletId": "OUT-1183",
+  "geo": {
+    "lat": 23.780621,
+    "lng": 90.407269
+  },
+  "meta": {
+    "dialect": "dhaka",
+    "noise": "unknown",
+    "speakerId": "reader",
+    "referenceSource": "heard",
+    "labelledBy": "muse-team",
+    "labelledAt": "2026-08-28T22:10:06.405Z",
+    "promotedFromCorrection": false
+  }
+}
