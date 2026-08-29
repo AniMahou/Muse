@@ -15,6 +15,7 @@ import { GroqLlmProvider } from "@/adapters/llm/groq.adapter";
 import { GeminiLlmProvider } from "@/adapters/llm/gemini.adapter";
 import { LocalStorage } from "@/adapters/storage/local.adapter";
 import { MockOcrProvider } from "@/adapters/ocr/mock.adapter";
+import { HttpOcrProvider } from "@/adapters/ocr/http.adapter";
 import { S3Storage } from "@/adapters/storage/s3.adapter";
 import { MongoCatalogRepo, MongoOutletRepo } from "@/adapters/catalog/mongo.repo";
 
@@ -132,7 +133,13 @@ export function buildContainer(db: Db, overrides: ContainerOverrides = {}): Cont
   const storage = buildStorage();
   const asr = buildAsr();
   const llm = buildLlm();
-  const ocr = new MockOcrProvider();
+  // Defaults to the mock. The real recogniser needs a Python process running
+  // beside the API, and a demo that silently depends on a second service is a
+  // demo that fails in the one room where it matters.
+  const ocr: IOcrProvider =
+    config.ocrProvider === "http"
+      ? new HttpOcrProvider(config.ocrModel, config.ocrUrl)
+      : new MockOcrProvider();
 
   const catalog = new MongoCatalogRepo(cols);
   const outlets = new MongoOutletRepo(cols);

@@ -54,6 +54,10 @@ const ConfigSchema = z.object({
   llmProvider: z.enum(["groq", "gemini", "fake"]).default("fake"),
   groqLlmModel: z.string().default("openai/gpt-oss-120b"),
   geminiLlmModel: z.string().default("gemini-2.0-flash"),
+  /** mock | http. Switching to http makes the product stop calling itself simulated. */
+  ocrProvider: z.enum(["mock", "http"]).default("mock"),
+  ocrUrl: z.string().default("http://127.0.0.1:5179"),
+  ocrModel: z.string().default("crnn-ctc-ft-v1"),
   llmTemperature: num(0),
   llmMaxTokens: num(DEFAULT_LLM_MAX_TOKENS),
   /** Unset means the provider's own default. See LlmRequest.reasoningEffort. */
@@ -121,6 +125,9 @@ function read(): Config {
     llmProvider: env.LLM_PROVIDER,
     groqLlmModel: env.GROQ_LLM_MODEL,
     geminiLlmModel: env.GEMINI_LLM_MODEL,
+    ocrProvider: env.OCR_PROVIDER,
+    ocrUrl: env.OCR_URL,
+    ocrModel: env.OCR_MODEL,
     llmTemperature: env.LLM_TEMPERATURE,
     llmMaxTokens: env.LLM_MAX_TOKENS,
     llmReasoningEffort: env.LLM_REASONING_EFFORT,
