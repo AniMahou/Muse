@@ -144,10 +144,30 @@ def main() -> None:
                 print(f"        want  {r['truth']}")
                 print(f"        got   {r['got']}")
 
-        unknown = sorted({u for r in results for u in r["unknown"]})
-        if unknown:
-            print(f"    characters absent from the trained alphabet: {' '.join(unknown)}")
-            print("      these cannot be emitted at all — extend the corpus, not the model")
+        # Split the error in two, because the fixes are different.
+        #
+        # A line containing a character the model has no output unit for cannot
+        # be got right at any price — that is a corpus gap, fixed by generating
+        # more data. A line whose every character WAS trainable and is still
+        # wrong is the domain gap: the renderer does not look like a shop.
+        # Reporting one averaged number hides which of the two we are looking
+        # at, and they call for completely different work.
+        reachable = [r for r in results if not r["unknown"]]
+        blocked = [r for r in results if r["unknown"]]
+        if blocked:
+            print("    split by cause:")
+            if reachable:
+                print(
+                    f"      every character trainable   n={len(reachable):3d}  "
+                    f"CER {sum(r['cer'] for r in reachable)/len(reachable):.3f}"
+                )
+            print(
+                f"      contains untrainable chars  n={len(blocked):3d}  "
+                f"CER {sum(r['cer'] for r in blocked)/len(blocked):.3f}"
+            )
+            missing = sorted({u for r in blocked for u in r["unknown"]})
+            print(f"      absent from the alphabet: {' '.join(missing)}")
+            print("      the model has no output unit for these — extend the corpus")
         print()
 
     if len(by_kind) > 1:

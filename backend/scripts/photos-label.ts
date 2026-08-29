@@ -84,7 +84,10 @@ async function crop(src: string, box: LabelRow["box"], dest: string): Promise<vo
     "-v", "error", "-y", "-i", src,
     "-vf", `crop=${Math.round(box.w)}:${Math.round(box.h)}:${Math.round(box.x)}:${Math.round(box.y)},` +
       `scale=-1:32:flags=lanczos,format=gray`,
-    "-frames:v", "1", dest,
+    // Drop the source colour profile. ffmpeg otherwise copies the phone's RGB
+    // ICC profile onto a greyscale PNG, which is invalid, and every reader
+    // downstream warns about it once per image.
+    "-map_metadata", "-1", "-frames:v", "1", dest,
   ]);
 }
 

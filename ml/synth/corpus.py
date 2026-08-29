@@ -89,6 +89,21 @@ UNITS_BN = ["পিস", "কেজি", "লিটার", "প্যাকে�
 PACKS = ["250ml", "500ml", "1L", "100g", "150g", "180ml", "500g", "1kg"]
 OFFER_BN = ["অফার", "নতুন অফার", "ছাড়", "বিশেষ ছাড়", "১টি ফ্রি", "নতুন দাম"]
 
+# What is actually inkjetted onto a Bangladeshi packet, added after the first
+# real photographs were scored.
+#
+# The model could not spell any of it. ঃ, ৎ and ূ had NO output unit at all —
+# never once in 50,000 rendered lines — so মূল্যঃ and উৎপাদন were unreachable
+# at any confidence. These are not obscure characters; they are on the front of
+# most packets in the country. Generating from a catalogue of product names
+# taught the model the catalogue, and a price tag is not only product names.
+LABEL_KEYS_BN = ["মূল্যঃ", "মূল্য", "ওজনঃ", "ওজন", "উৎপাদন", "উৎপাদনঃ", "মেয়াদঃ",
+                 "মেয়াদ", "ব্যাচ নং", "নিট ওজনঃ", "খুচরা মূল্যঃ", "সর্বোচ্চ খুচরা মূল্য"]
+
+# Supermarket promo tags are set in Latin even where the shop is Bangla-speaking.
+LABEL_KEYS_EN = ["Net Weight:", "MRP:", "Price:", "TK", "OFF", "SAVE", "Best Before:",
+                 "MFG:", "EXP:", "Batch No:"]
+
 
 def to_bn_digits(n: int | str) -> str:
     return "".join(BN_DIGITS[int(c)] if c.isdigit() else c for c in str(n))
@@ -129,6 +144,35 @@ def price(rng: random.Random) -> str:
     return rng.choice([f"৳{n}", f"৳ {n}", f"{n}৳", f"{n}/-", f"{n} টাকা", f"দাম {n}", n])
 
 
+def datecode(rng: random.Random) -> str:
+    """A manufacture or expiry stamp, in the layout packets actually use."""
+    d, m, y = rng.randrange(1, 29), rng.randrange(1, 13), rng.randrange(24, 28)
+    parts = f"{d:02d}/{m:02d}/{y:02d}"
+    if rng.random() < 0.75:
+        parts = to_bn_digits(parts)
+        return f"{rng.choice(['উৎপাদন', 'উৎপাদনঃ', 'মেয়াদঃ', 'উঃ', 'মেঃ'])}{rng.choice([' ', ''])}{parts}"
+    return f"{rng.choice(['MFG:', 'EXP:', 'Best Before:'])} {parts}"
+
+
+def label_field(rng: random.Random) -> str:
+    """`key: value` as it appears on a packet, rather than a bare value.
+
+    Every real photograph we scored carried this shape and almost none of the
+    training corpus did — the generator emitted product names and bare prices,
+    so the model had learned that a line IS a product name and read one back
+    whatever it was shown.
+    """
+    if rng.random() < 0.7:
+        key = rng.choice(LABEL_KEYS_BN)
+        n = rng.randrange(1, 500)
+        n_s = to_bn_digits(n) if rng.random() < 0.8 else str(n)
+        unit = rng.choice(["টাকা", "গ্রাম", "মিলি", "কেজি", "৳", ""])
+        return f"{key}{rng.choice([' ', ''])}{n_s}{(' ' + unit) if unit else ''}".strip()
+    key = rng.choice(LABEL_KEYS_EN)
+    n = rng.randrange(1, 999)
+    return f"{key} {n}" if key not in ("OFF", "SAVE") else f"TK {n} {key}"
+
+
 def quantity(rng: random.Random) -> str:
     n = rng.randrange(1, 60)
     n_s = to_bn_digits(n) if rng.random() < 0.7 else str(n)
@@ -148,14 +192,51 @@ def line(cat: Catalog, rng: random.Random) -> str:
         return f"{rng.choice(names)} {price(rng)}"
     if roll < 0.84:
         return f"{rng.choice(names)} {rng.choice(PACKS)}"
-    if roll < 0.90:
+    if roll < 0.88:
         return quantity(rng)
-    if roll < 0.96:                      # promo signage — a competitor_promo
+    if roll < 0.93:                      # promo signage — a competitor_promo
         return f"{rng.choice(names)} {rng.choice(OFFER_BN)}"
+    if roll < 0.97:                      # what is printed ON the packet
+        return label_field(rng)
+    if roll < 0.99:
+        return datecode(rng)
     name = rng.choice([o["name"] for o in cat.outlets])
     return BN_OUTLETS.get(name, name) if rng.random() < 0.7 else name
 
 
+def coverage(cat: Catalog) -> list[str]:
+    """Every string the vocabulary can produce, emitted at least once.
+
+    Without this the alphabet is decided by a random draw. Regenerating with a
+    new distribution silently DROPPED '.', 'ী', 'ধ', 'ভ' and 'ঁ' — characters
+    that are plainly in the vocabulary — simply because no sampled line
+    happened to contain them, and a character absent from training is a
+    character the model can never emit. The output layer is a contract; it
+    should not depend on a dice roll.
+
+    So the corpus opens with one pass over every product name, every outlet,
+    every label key and every unit. Random sampling then fills the rest.
+    """
+    out: list[str] = list(cat.product_names())
+    out += [o["name"] for o in cat.outlets]
+    # Every name this module knows, not only the ones the current catalogue
+    # happens to list. A catalogue is edited between runs; the alphabet should
+    # not shrink because a shop was removed from it. ী alone lives in exactly
+    # one entry here, and losing it costs the model a common Bengali vowel.
+    out += list(BN_NAMES.values()) + list(BN_OUTLETS.values())
+    out += LABEL_KEYS_BN + LABEL_KEYS_EN + UNITS_BN + PACKS + OFFER_BN
+    out += [to_bn_digits("0123456789"), "0123456789", "৳ / - . : !"]
+    # The Latin alphabet outright, rendered as its own lines. A brand we have
+    # never listed will still be photographed, and an output unit that saw no
+    # training example is one the model cannot use. Cheap insurance: a handful
+    # of extra lines out of fifty thousand.
+    out += ["abcdefghijklmnopqrstuvwxyz", "ABCDEFGHIJKLMNOPQRSTUVWXYZ"]
+    return out
+
+
 def corpus(cat: Catalog, n: int, seed: int = 0) -> list[str]:
     rng = random.Random(seed)
-    return [line(cat, rng) for _ in range(n)]
+    base = coverage(cat)
+    if n <= len(base):
+        return base[:n]
+    return base + [line(cat, rng) for _ in range(n - len(base))]
