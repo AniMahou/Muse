@@ -37,7 +37,7 @@ from .model import CRNN, IMG_H
 PHOTOS = Path("../backend/datasets/photos")
 
 
-def load_rows(labels: Path, kind: str | None) -> list[dict]:
+def load_rows(labels: Path, kind: str | None, split: str = "test") -> list[dict]:
     if not labels.exists():
         raise SystemExit(
             f"no labels at {labels}\n"
@@ -45,7 +45,17 @@ def load_rows(labels: Path, kind: str | None) -> list[dict]:
             "  then label:     npm run photos:label"
         )
     rows = [json.loads(l) for l in labels.read_text(encoding="utf-8").splitlines() if l.strip()]
-    return [r for r in rows if kind is None or r["kind"] == kind]
+    rows = [r for r in rows if kind is None or r["kind"] == kind]
+
+    # Default to the held-out photographs only. Scoring a fine-tuned model on
+    # lines it was fine-tuned on is not a measurement, and making that the
+    # DEFAULT rather than a flag means the honest number is the one you get by
+    # accident.
+    if split != "all":
+        sp = json.loads((labels.parent / "split.json").read_text(encoding="utf-8"))
+        allowed = set(sp[split])
+        rows = [r for r in rows if r["photoId"] in allowed]
+    return rows
 
 
 def read_crop(path: Path) -> torch.Tensor | None:
@@ -63,6 +73,8 @@ def main() -> None:
     ap.add_argument("--checkpoint", default="checkpoints")
     ap.add_argument("--photos", default=str(PHOTOS))
     ap.add_argument("--kind", default=None, help="printed | handwritten; default both, reported apart")
+    ap.add_argument("--split", default="test", choices=["test", "train", "all"],
+                    help="held-out photographs by default")
     ap.add_argument("--device", default="cpu")
     args = ap.parse_args()
 
@@ -76,11 +88,11 @@ def main() -> None:
     model.eval()
 
     root = Path(args.photos)
-    rows = load_rows(root / "labels.jsonl", args.kind)
+    rows = load_rows(root / "labels.jsonl", args.kind, args.split)
     if not rows:
         raise SystemExit("no labelled lines to score")
 
-    print(f"\n  {len(rows)} labelled line(s) · {charset.size} classes")
+    print(f"\n  {len(rows)} labelled line(s) · split '{args.split}' · {charset.size} classes")
     if synth_cer is not None:
         print(f"  synthetic validation CER at training time: {synth_cer:.3f}")
     print()
