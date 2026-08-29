@@ -147,7 +147,11 @@ async function withRetry<T>(fn: () => Promise<T>, pacer: Pacer, attempts = 10): 
       const waitMs = suggested
         ? Math.ceil(Number(suggested[1]) * 1000) + 750
         : Math.min(45_000, 2_000 * 2 ** i);
-      process.stdout.write(`throttled, waiting ${(waitMs / 1000).toFixed(1)}s ... `);
+      // Say WHY on the first attempt. Printing only "throttled" cost hours once:
+      // a Cloudflare block surfaced as `fetch failed`, was retried like a rate
+      // limit, and looked exactly like one from the outside.
+      if (i === 0) process.stdout.write(`\n      retrying — ${err.message.slice(0, 120)}\n      `);
+      process.stdout.write(`waiting ${(waitMs / 1000).toFixed(1)}s ... `);
       await sleep(waitMs);
     }
   }

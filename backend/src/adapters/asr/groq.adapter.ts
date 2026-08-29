@@ -2,6 +2,7 @@ import type { Transcript, Word } from "@shared/stage-io";
 import type { AsrRequest, IAsrProvider } from "@/pipeline/ports";
 import { extensionForMime } from "@/common/audio";
 import { ProviderError } from "@/common/errors";
+import { USER_AGENT } from "@/adapters/user-agent";
 import { attachSpans } from "@/common/transcript";
 import { segmentConfidence } from "./confidence";
 
@@ -119,7 +120,7 @@ export class GroqAsrProvider implements IAsrProvider {
     try {
       const res = await fetch(`${this.baseUrl}/audio/transcriptions`, {
         method: "POST",
-        headers: { Authorization: `Bearer ${this.apiKey}` },
+        headers: { Authorization: `Bearer ${this.apiKey}`, "User-Agent": USER_AGENT },
         body: form,
         signal: controller.signal,
       });

@@ -1,6 +1,7 @@
 import { toStrictJsonSchema } from "./json-schema";
 import type { ILlmProvider, LlmRequest, LlmResponse } from "@/pipeline/ports";
 import { ProviderError } from "@/common/errors";
+import { USER_AGENT } from "@/adapters/user-agent";
 
 /**
  * Groq chat completions in JSON-schema mode.
@@ -47,6 +48,7 @@ export class GroqLlmProvider implements ILlmProvider {
         method: "POST",
         headers: {
           Authorization: `Bearer ${this.apiKey}`,
+          "User-Agent": USER_AGENT,
           "Content-Type": "application/json",
         },
         body: JSON.stringify(body),
