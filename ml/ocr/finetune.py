@@ -130,6 +130,8 @@ def main() -> None:
     ap.add_argument("--batch", type=int, default=16)
     ap.add_argument("--lr", type=float, default=1e-4)
     ap.add_argument("--repeat", type=int, default=12, help="oversampling of the real set")
+    ap.add_argument("--val-frac", type=float, default=0.25,
+                    help="fraction of TRAIN photos held back to choose the epoch")
     ap.add_argument("--synth-ratio", type=float, default=1.0,
                     help="synthetic samples per real sample, to rehearse against forgetting")
     args = ap.parse_args()
@@ -144,6 +146,20 @@ def main() -> None:
     train_rows = labelled(photos, "train")
     test_rows = labelled(photos, "test")
 
+    # Model selection needs its OWN data. Choosing the epoch with the lowest
+    # test CER and then reporting that CER is selection on the test set: with
+    # twenty epochs to choose from and only twenty-three test lines, the
+    # minimum of a noisy sequence is optimistically biased even when every
+    # individual measurement is honest. So a slice of the TRAIN photographs is
+    # held back for choosing, and the test set is touched once, at the end.
+    #
+    # Split by photo here too, for the same reason the outer split is.
+    train_photos = sorted({r["photoId"] for r in train_rows})
+    n_val = max(1, round(len(train_photos) * args.val_frac))
+    val_photos = set(train_photos[::max(1, len(train_photos) // n_val)][:n_val])
+    val_rows = [r for r in train_rows if r["photoId"] in val_photos]
+    train_rows = [r for r in train_rows if r["photoId"] not in val_photos]
+
     # Lines carrying a character the alphabet lacks cannot be learned: CTC has
     # no unit to raise. Dropped from TRAINING with a note, never from the test
     # set, where they are part of the honest picture.
@@ -154,10 +170,12 @@ def main() -> None:
     model.to(device)
 
     print(f"\n  {len(keep)} real training lines" + (f" ({dropped} dropped: untrainable chars)" if dropped else ""))
-    print(f"  {len(test_rows)} held-out lines, never trained on")
+    print(f"  {len(val_rows)} validation lines from {sorted(val_photos)} — for choosing the epoch")
+    print(f"  {len(test_rows)} held-out lines, scored once at the end")
 
     before = score(model, test_rows, photos, charset)
-    print(f"  before: CER {before[0]:.3f}  exact {before[1]:.1%}\n")
+    before_val = score(model, val_rows, photos, charset)
+    print(f"  before: test CER {before[0]:.3f}  exact {before[1]:.1%}\n")
 
     real = RealLines(photos, charset, keep, repeat=args.repeat)
     synth_rows = load_rows(args.synth)
@@ -171,7 +189,7 @@ def main() -> None:
     criterion = nn.CTCLoss(blank=0, zero_infinity=True)
     opt = torch.optim.AdamW(model.parameters(), lr=args.lr, weight_decay=1e-4)
 
-    best = before[0]
+    best = before_val[0]
     out = Path(args.out)
     out.mkdir(parents=True, exist_ok=True)
     history = []
@@ -199,22 +217,34 @@ def main() -> None:
             total += float(loss) * x.shape[0]
             seen += x.shape[0]
 
-        cer_now, exact_now = score(model, test_rows, photos, charset)
-        history.append({"epoch": epoch, "loss": total / max(1, seen), "test_cer": cer_now,
-                        "test_exact": exact_now})
+        cer_now, _ = score(model, val_rows, photos, charset)
+        history.append({"epoch": epoch, "loss": total / max(1, seen), "val_cer": cer_now})
         star = ""
         if cer_now < best:
             best = cer_now
+            # Deliberately NOT under "val_cer". That key means "CER on held-out
+            # SYNTHETIC data" everywhere else, and the reporting script prints
+            # it with that wording; writing a real-photo score into it made the
+            # evaluation announce a domain gap of exactly zero, which is not a
+            # result, it is the same number subtracted from itself.
             torch.save({"model": {k: v.cpu() for k, v in model.state_dict().items()},
-                        "charset": charset.chars, "val_cer": cer_now,
+                        "charset": charset.chars, "real_val_cer": cer_now,
                         "finetuned_from": str(ckpt)}, out / "recogniser.pt")
             star = "  <- saved"
-        print(f"  epoch {epoch:2d}: loss {total/max(1,seen):.3f} · test CER {cer_now:.3f} · "
-              f"exact {exact_now:.1%}{star}", flush=True)
+        print(f"  epoch {epoch:2d}: loss {total/max(1,seen):.3f} · val CER {cer_now:.3f}{star}",
+              flush=True)
 
     Charset(charset.chars).save(out / "charset.json")
     (out / "history.json").write_text(json.dumps(history, indent=2), encoding="utf-8")
-    print(f"\n  before {before[0]:.3f} -> best {best:.3f}   ({before[0]-best:+.3f})")
+
+    # The test set, once, on the epoch validation chose.
+    chosen = torch.load(out / "recogniser.pt", map_location="cpu")
+    final = CRNN(charset.size)
+    final.load_state_dict(chosen["model"])
+    after = score(final, test_rows, photos, charset)
+    print(f"\n  validation picked an epoch at val CER {best:.3f}")
+    print(f"  TEST: {before[0]:.3f} -> {after[0]:.3f}   ({before[0]-after[0]:+.3f} CER)")
+    print(f"        exact {before[1]:.1%} -> {after[1]:.1%}")
 
 
 if __name__ == "__main__":

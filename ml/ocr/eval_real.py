@@ -81,7 +81,11 @@ def main() -> None:
     ckpt_dir = Path(args.checkpoint)
     blob = torch.load(ckpt_dir / "recogniser.pt", map_location="cpu")
     charset = Charset(blob["charset"])
+    # Only a synthetic-trained checkpoint has a synthetic validation score. A
+    # fine-tuned one does not, and claiming otherwise turns the domain-gap line
+    # into a comparison of a number with itself.
     synth_cer = blob.get("val_cer")
+    finetuned_from = blob.get("finetuned_from")
 
     model = CRNN(charset.size)
     model.load_state_dict(blob["model"])
@@ -93,7 +97,10 @@ def main() -> None:
         raise SystemExit("no labelled lines to score")
 
     print(f"\n  {len(rows)} labelled line(s) · split '{args.split}' · {charset.size} classes")
-    if synth_cer is not None:
+    if finetuned_from is not None:
+        print(f"  fine-tuned from {finetuned_from} on real photographs")
+        print("  no synthetic validation score applies; there is no domain gap to report")
+    elif synth_cer is not None:
         print(f"  synthetic validation CER at training time: {synth_cer:.3f}")
     print()
 
@@ -131,7 +138,7 @@ def main() -> None:
         print(f"    CER          {mean_cer:.3f}")
         print(f"    exact match  {exact:.1%}")
         print(f"    mean confidence {mean_conf:.2f}")
-        if synth_cer is not None and kind == "printed":
+        if synth_cer is not None and finetuned_from is None and kind == "printed":
             gap = mean_cer - synth_cer
             print(f"    domain gap   {gap:+.3f}  (synthetic {synth_cer:.3f} -> real {mean_cer:.3f})")
 
