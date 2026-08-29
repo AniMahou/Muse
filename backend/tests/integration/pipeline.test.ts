@@ -51,6 +51,7 @@ function assemblyHandler(req: LlmRequest<unknown>) {
         priceDelta: null,
         severity: "medium",
         verbatimBn: "প্রান ম্যাঙ্গো জুস দের ডজন লাগবে",
+        mentionIndex: "0",
       },
       {
         type: "competitor_promo",
@@ -62,6 +63,7 @@ function assemblyHandler(req: LlmRequest<unknown>) {
         priceDelta: -5,
         severity: "high",
         verbatimBn: "হইল এর নতুন অফার দিছে পাচ টাকা কম",
+        mentionIndex: "1",
       },
     ],
   };
@@ -180,6 +182,7 @@ describe("the enum lock, end to end", () => {
             priceDelta: null,
             severity: "medium",
             verbatimBn: "x",
+            mentionIndex: "0",
           },
         ],
       }),

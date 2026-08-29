@@ -23,6 +23,15 @@ export interface AssemblyVocabulary {
   outletIds: string[];
   skuIds: string[];
   competitorBrands: string[];
+  /**
+   * One entry per distinct product mention stage 3 found, as a string index.
+   *
+   * Strings rather than numbers because the strict JSON-schema dialect the
+   * providers accept expresses a closed set as a string `enum`; a union of
+   * numeric literals survives zod-to-json-schema but not the API's own
+   * validator.
+   */
+  mentionIndices: string[];
 }
 
 export function vocabularyFrom(annotations: Annotations): AssemblyVocabulary {
@@ -40,6 +49,7 @@ export function vocabularyFrom(annotations: Annotations): AssemblyVocabulary {
     outletIds: annotations.outlet.candidates.map((c) => c.outletId),
     skuIds: [...skuIds],
     competitorBrands: [...competitorBrands],
+    mentionIndices: annotations.skus.map((_, i) => String(i)),
   };
 }
 
@@ -60,6 +70,22 @@ export function buildAssemblySchema(vocab: AssemblyVocabulary) {
     priceDelta: z.number().nullable(),
     severity: SeveritySchema,
     verbatimBn: z.string(),
+    /**
+     * Which numbered product mention this observation came from.
+     *
+     * Not part of ObservationCore — it is stripped before the observation
+     * leaves this stage. It exists to make under-segmentation OBSERVABLE.
+     *
+     * The measured failure is that a clip naming three products comes back as
+     * one merged observation: on the 105-clip dev set, 27 of 38 multi-mention
+     * clips under-reported, losing 32 of 149 observations. Counting entries
+     * cannot distinguish "the rep really said one thing" from "the model
+     * merged three", so the model is made to say which mention each entry
+     * answers. A mention nobody claimed is then a fact, not an inference.
+     *
+     * Null is legitimate: a complaint or a closed shop belongs to no product.
+     */
+    mentionIndex: enumOrNull(vocab.mentionIndices),
   });
 
   return z.object({ observations: z.array(Observation) });

@@ -1,5 +1,6 @@
 import { z } from "zod";
 import dotenv from "dotenv";
+import { DEFAULT_LLM_MAX_TOKENS } from "@/pipeline/ports/llm.port";
 
 dotenv.config();
 
@@ -54,7 +55,9 @@ const ConfigSchema = z.object({
   groqLlmModel: z.string().default("openai/gpt-oss-120b"),
   geminiLlmModel: z.string().default("gemini-2.0-flash"),
   llmTemperature: num(0),
-  llmMaxTokens: num(2048),
+  llmMaxTokens: num(DEFAULT_LLM_MAX_TOKENS),
+  /** Unset means the provider's own default. See LlmRequest.reasoningEffort. */
+  llmReasoningEffort: z.enum(["low", "medium", "high"]).optional(),
   llmTimeoutMs: num(30_000),
 
   storageDriver: z.enum(["local", "s3"]).default("local"),
@@ -120,6 +123,7 @@ function read(): Config {
     geminiLlmModel: env.GEMINI_LLM_MODEL,
     llmTemperature: env.LLM_TEMPERATURE,
     llmMaxTokens: env.LLM_MAX_TOKENS,
+    llmReasoningEffort: env.LLM_REASONING_EFFORT,
     llmTimeoutMs: env.LLM_TIMEOUT_MS,
 
     storageDriver: env.STORAGE_DRIVER,

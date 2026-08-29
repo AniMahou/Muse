@@ -1,4 +1,5 @@
 import { toStrictJsonSchema } from "./json-schema";
+import { DEFAULT_LLM_MAX_TOKENS } from "@/pipeline/ports";
 import type { ILlmProvider, LlmRequest, LlmResponse } from "@/pipeline/ports";
 import { ProviderError } from "@/common/errors";
 import { parseAndValidate } from "./groq.adapter";
@@ -31,7 +32,7 @@ export class GeminiLlmProvider implements ILlmProvider {
       contents: [{ role: "user", parts: [{ text: req.user }] }],
       generationConfig: {
         temperature: req.temperature ?? 0,
-        maxOutputTokens: req.maxTokens ?? 2048,
+        maxOutputTokens: req.maxTokens ?? DEFAULT_LLM_MAX_TOKENS,
         responseMimeType: "application/json",
         responseSchema: pruneForGemini(jsonSchema),
       },

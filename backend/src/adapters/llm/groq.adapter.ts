@@ -1,4 +1,5 @@
 import { toStrictJsonSchema } from "./json-schema";
+import { DEFAULT_LLM_MAX_TOKENS } from "@/pipeline/ports";
 import type { ILlmProvider, LlmRequest, LlmResponse } from "@/pipeline/ports";
 import { ProviderError } from "@/common/errors";
 import { USER_AGENT } from "@/adapters/user-agent";
@@ -30,7 +31,8 @@ export class GroqLlmProvider implements ILlmProvider {
     const body = {
       model: this.model,
       temperature: req.temperature ?? 0,
-      max_tokens: req.maxTokens ?? 2048,
+      max_tokens: req.maxTokens ?? DEFAULT_LLM_MAX_TOKENS,
+      ...(req.reasoningEffort ? { reasoning_effort: req.reasoningEffort } : {}),
       messages: [
         { role: "system", content: req.system },
         { role: "user", content: req.user },
@@ -58,15 +60,35 @@ export class GroqLlmProvider implements ILlmProvider {
       if (!res.ok) {
         const text = await res.text().catch(() => "");
         const retryable = res.status === 429 || res.status >= 500;
-        throw new ProviderError(this.name, `HTTP ${res.status}: ${text.slice(0, 400)}`, retryable);
+        throw new ProviderError(
+          this.name,
+          `HTTP ${res.status}: ${explain(text, body.max_tokens)}`,
+          retryable,
+        );
       }
 
       const json = (await res.json()) as {
-        choices?: Array<{ message?: { content?: string } }>;
+        choices?: Array<{ message?: { content?: string }; finish_reason?: string }>;
         usage?: { prompt_tokens?: number; completion_tokens?: number };
       };
-      const raw = json.choices?.[0]?.message?.content ?? "";
+      const choice = json.choices?.[0];
+      const raw = choice?.message?.content ?? "";
       if (raw.length === 0) throw new ProviderError(this.name, "empty completion", true);
+
+      // Truncation must not be retried. The reply is cut mid-JSON, so it would
+      // otherwise surface as "reply was not valid JSON" — which IS marked
+      // retryable, and at temperature 0 every retry truncates in exactly the
+      // same place. That loop spends the daily token allowance on a request
+      // that cannot succeed until max_tokens is raised, and says nothing about
+      // why. Fail once, and name the actual cause.
+      if (choice?.finish_reason === "length") {
+        throw new ProviderError(
+          this.name,
+          `completion hit the ${body.max_tokens}-token ceiling and was truncated; ` +
+            `raise LLM_MAX_TOKENS`,
+          false,
+        );
+      }
 
       return { ...parseAndValidate(this.name, raw, req), ...usageOf(json.usage) };
     } catch (err) {
@@ -79,6 +101,25 @@ export class GroqLlmProvider implements ILlmProvider {
       clearTimeout(timer);
     }
   }
+}
+
+/**
+ * Say what a provider error actually means, where the provider will not.
+ *
+ * `json_validate_failed` with an EMPTY `failed_generation` is the shape a
+ * truncated structured reply takes: the model was cut off mid-JSON, so there
+ * is nothing to hand back and nothing to validate. Groq does NOT report this
+ * as finish_reason "length" — it is a 400 that reads exactly like a schema
+ * bug, and sent us auditing a schema that was correct.
+ */
+function explain(text: string, maxTokens: number): string {
+  const truncated =
+    text.includes("json_validate_failed") && text.includes('"failed_generation":""');
+  const detail = text.slice(0, 400);
+  return truncated
+    ? `${detail}\n      ^ empty failed_generation means the reply was CUT OFF, not malformed — ` +
+        `max_tokens is ${maxTokens} and reasoning tokens count against it`
+    : detail;
 }
 
 export function parseAndValidate<T>(

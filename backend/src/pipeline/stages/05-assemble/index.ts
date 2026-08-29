@@ -1,5 +1,6 @@
 import type { ObservationCore } from "@shared/observation.schema";
 import type { Annotations } from "@shared/stage-io";
+import { DEFAULT_LLM_MAX_TOKENS } from "@/pipeline/ports";
 import type { ILlmProvider } from "@/pipeline/ports";
 import { buildAssemblySchema, vocabularyFrom } from "./schema";
 import { SYSTEM_PROMPT, renderUserPrompt } from "./prompt";
@@ -7,6 +8,9 @@ import type { AssembleStageInput, AssembleStageOptions, AssembleStageOutput } fr
 
 /** Quantities are floats; compare with a tolerance rather than by identity. */
 const QUANTITY_EPSILON = 1e-6;
+
+/** What the model returns: an observation plus the mention it answers. */
+type Attributed = ObservationCore & { mentionIndex: string | null };
 
 /**
  * Stage 5 — assemble annotations into observations.
@@ -31,13 +35,15 @@ export class AssembleStage {
 
   private readonly temperature: number;
   private readonly maxTokens: number;
+  private readonly reasoningEffort: AssembleStageOptions["reasoningEffort"];
 
   constructor(
     private readonly llm: ILlmProvider,
     opts: AssembleStageOptions = {},
   ) {
     this.temperature = opts.temperature ?? 0;
-    this.maxTokens = opts.maxTokens ?? 2048;
+    this.maxTokens = opts.maxTokens ?? DEFAULT_LLM_MAX_TOKENS;
+    this.reasoningEffort = opts.reasoningEffort;
   }
 
   async run(input: AssembleStageInput): Promise<AssembleStageOutput> {
@@ -54,9 +60,16 @@ export class AssembleStage {
       schemaName: "MuseAssembly",
       temperature: this.temperature,
       maxTokens: this.maxTokens,
+      ...(this.reasoningEffort ? { reasoningEffort: this.reasoningEffort } : {}),
     });
 
-    return this.enforceNumbers(data.observations as ObservationCore[], annotations);
+    const attributed = data.observations as Attributed[];
+    const observations = attributed.map(({ mentionIndex: _drop, ...core }) => core);
+
+    return {
+      ...this.enforceNumbers(observations, annotations),
+      unattributedMentions: unclaimedMentions(attributed, annotations),
+    };
   }
 
   /**
@@ -70,7 +83,7 @@ export class AssembleStage {
   private enforceNumbers(
     observations: ObservationCore[],
     annotations: Annotations,
-  ): AssembleStageOutput {
+  ): Omit<AssembleStageOutput, "unattributedMentions"> {
     const allowedValues = new Set(annotations.quantities.map((q) => q.value));
     const rejected: AssembleStageOutput["rejectedValues"] = [];
 
@@ -103,6 +116,23 @@ export class AssembleStage {
 
     return { observations: cleaned, rejectedValues: rejected };
   }
+}
+
+/**
+ * Product mentions the model was shown and then answered for nobody.
+ *
+ * This is the measurement that motivated `mentionIndex`. Comparing counts
+ * cannot tell a merged answer from an honestly short one; comparing claims
+ * can.
+ */
+function unclaimedMentions(
+  observations: Attributed[],
+  annotations: Annotations,
+): AssembleStageOutput["unattributedMentions"] {
+  const claimed = new Set(observations.map((o) => o.mentionIndex).filter((m) => m !== null));
+  return annotations.skus
+    .map((ann, index) => ({ index, raw: ann.raw }))
+    .filter((m) => !claimed.has(String(m.index)));
 }
 
 function isAllowed(value: number, allowed: Set<number>): boolean {

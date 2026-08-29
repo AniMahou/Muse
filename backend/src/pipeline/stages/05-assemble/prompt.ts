@@ -6,12 +6,13 @@ export const SYSTEM_PROMPT = `You convert a Bangladeshi FMCG field representativ
 You are given a Bangla transcript produced by speech recognition, which WILL contain errors, together with annotations already resolved by deterministic code. Your job is segmentation and meaning — not identification.
 
 Rules:
-1. One recording may contain SEVERAL unrelated observations, or none. Emit one entry per distinct thing reported.
-2. Identity fields (outletId, skuId, competitorBrand) may ONLY take values from the supplied candidate lists. If nothing in the list fits, use null.
-3. Quantities and prices have already been parsed. Use the supplied values verbatim. Never compute, convert, or infer a number that is not in the list.
-4. Use null generously. A field the speaker did not mention is null. Inventing a plausible value is the worst thing you can do here.
-5. verbatimBn must be the speaker's own words for that observation, copied from the transcript. Never translate it.
-6. severity: high for anything needing action today (competitor promotion, stock-out of a fast mover), medium for routine demand signals, low for passing remarks.`;
+1. One recording may contain SEVERAL unrelated observations, or none. Emit one entry per distinct thing reported. Merging two reports into one entry loses data that cannot be recovered downstream.
+2. Every numbered product mention is a separate thing reported. Set mentionIndex to the number of the mention the entry came from. Two mentions belong in one entry ONLY if they name the same product; otherwise emit one entry each. An entry that came from no product mention — a complaint, a closed shop — takes mentionIndex null.
+3. Identity fields (outletId, skuId, competitorBrand) may ONLY take values from the supplied candidate lists. If nothing in the list fits, use null.
+4. Quantities and prices have already been parsed. Use the supplied values verbatim. Never compute, convert, or infer a number that is not in the list.
+5. Use null generously. A field the speaker did not mention is null. Inventing a plausible value is the worst thing you can do here.
+6. verbatimBn must be the speaker's own words for that observation, copied from the transcript. Never translate it.
+7. severity: high for anything needing action today (competitor promotion, stock-out of a fast mover), medium for routine demand signals, low for passing remarks.`;
 
 export function renderUserPrompt(
   transcript: Transcript,
@@ -39,17 +40,28 @@ export function renderUserPrompt(
   }
   lines.push("");
 
-  lines.push("RESOLVED PRODUCT MENTIONS:");
-  if (annotations.skus.length === 0) {
-    lines.push("  (none)");
+  // Numbered, and the count stated outright. Stage 3 already knows how many
+  // distinct products were named; leaving the model to infer that from a bare
+  // list is where multi-observation clips collapse into one entry.
+  const mentionCount = annotations.skus.length;
+  lines.push(`RESOLVED PRODUCT MENTIONS — ${mentionCount} distinct mention(s):`);
+  if (mentionCount === 0) {
+    lines.push("  (none — every mentionIndex must be null)");
   } else {
-    for (const ann of annotations.skus) {
-      lines.push(`  heard "${ann.raw}" ->`);
+    for (const [i, ann] of annotations.skus.entries()) {
+      lines.push(`  [${i}] heard "${ann.raw}" ->`);
       for (const c of ann.candidates) {
         const tag = c.isCompetitor ? "COMPETITOR" : "own product";
         const via = c.viaAlias ? `, via approved alias "${c.viaAlias}"` : "";
         lines.push(`    ${c.skuId} — ${c.name} [${tag}] (score ${c.score}${via})`);
       }
+    }
+    if (mentionCount > 1) {
+      lines.push("");
+      lines.push(
+        `  ${mentionCount} different products were named, so expect ${mentionCount} observations —` +
+          " one per mention — unless two mentions are the same product said twice.",
+      );
     }
   }
   lines.push("");

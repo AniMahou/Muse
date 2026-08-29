@@ -65,6 +65,7 @@ const GOOD_REPLY = {
       priceDelta: null,
       severity: "medium",
       verbatimBn: "প্রাণ ম্যাঙ্গো জুস দেড় ডজন লাগবে",
+      mentionIndex: "0",
     },
     {
       type: "competitor_promo",
@@ -76,6 +77,7 @@ const GOOD_REPLY = {
       priceDelta: -5,
       severity: "high",
       verbatimBn: "হুইল এর নতুন অফার দিছে পাঁচ টাকা কম",
+      mentionIndex: "1",
     },
   ],
 };
@@ -141,7 +143,8 @@ describe("the per-request enum lock", () => {
       schema.safeParse({
         observations: [
           { type: "retailer_complaint", outletId: null, skuId: null, competitorBrand: null,
-            quantity: null, unit: null, priceDelta: null, severity: "low", verbatimBn: "দোকান বন্ধ" },
+            quantity: null, unit: null, priceDelta: null, severity: "low", verbatimBn: "দোকান বন্ধ",
+            mentionIndex: null },
         ],
       }).success,
     ).toBe(true);
@@ -150,7 +153,8 @@ describe("the per-request enum lock", () => {
       schema.safeParse({
         observations: [
           { type: "retailer_complaint", outletId: "OUT-1182", skuId: null, competitorBrand: null,
-            quantity: null, unit: null, priceDelta: null, severity: "low", verbatimBn: "x" },
+            quantity: null, unit: null, priceDelta: null, severity: "low", verbatimBn: "x",
+            mentionIndex: null },
         ],
       }).success,
     ).toBe(false);
@@ -287,5 +291,83 @@ describe("provider contract", () => {
 
   it("builds a schema that is a Zod object", () => {
     expect(buildAssemblySchema(vocabularyFrom(ANNOTATIONS))).toBeInstanceOf(z.ZodObject);
+  });
+});
+
+describe("segmentation", () => {
+  it("numbers each product mention and states how many there are", () => {
+    const prompt = renderUserPrompt(
+      transcriptFromText(TRANSCRIPT),
+      ANNOTATIONS,
+      vocabularyFrom(ANNOTATIONS),
+    );
+    expect(prompt).toContain("2 distinct mention(s)");
+    expect(prompt).toContain('[0] heard "প্রাণ ম্যাঙ্গো জুস"');
+    expect(prompt).toContain('[1] heard "হুইল"');
+    expect(prompt).toContain("expect 2 observations");
+  });
+
+  it("does not ask for one-per-mention when only one product was named", () => {
+    const one: Annotations = { ...ANNOTATIONS, skus: [ANNOTATIONS.skus[0]!] };
+    const prompt = renderUserPrompt(transcriptFromText(TRANSCRIPT), one, vocabularyFrom(one));
+    expect(prompt).toContain("1 distinct mention(s)");
+    expect(prompt).not.toContain("expect 1 observations");
+  });
+
+  it("only allows a mention index the resolver actually produced", () => {
+    const schema = buildAssemblySchema(vocabularyFrom(ANNOTATIONS));
+    const bad = structuredClone(GOOD_REPLY) as { observations: Array<Record<string, unknown>> };
+    bad.observations[0]!.mentionIndex = "7";
+    expect(schema.safeParse(bad).success).toBe(false);
+  });
+
+  it("forces mentionIndex to null when nothing resolved", () => {
+    const v = vocabularyFrom(EMPTY);
+    expect(v.mentionIndices).toEqual([]);
+    const schema = buildAssemblySchema(v);
+    const withIndex = {
+      observations: [
+        { type: "retailer_complaint", outletId: null, skuId: null, competitorBrand: null,
+          quantity: null, unit: null, priceDelta: null, severity: "low", verbatimBn: "x",
+          mentionIndex: "0" },
+      ],
+    };
+    expect(schema.safeParse(withIndex).success).toBe(false);
+  });
+
+  it("strips mentionIndex before the observation leaves the stage", async () => {
+    const out = await assemble(GOOD_REPLY);
+    expect(out.observations[0]).not.toHaveProperty("mentionIndex");
+  });
+
+  it("reports nothing unattributed when every mention was answered", async () => {
+    const out = await assemble(GOOD_REPLY);
+    expect(out.unattributedMentions).toEqual([]);
+  });
+
+  it("REPORTS a mention the model silently dropped", async () => {
+    // The measured failure: two products named, one observation returned. The
+    // count alone cannot distinguish this from an honestly short answer, so
+    // the dropped mention is named outright.
+    const merged = structuredClone(GOOD_REPLY) as { observations: unknown[] };
+    merged.observations = [merged.observations[0]];
+    const out = await assemble(merged);
+    expect(out.observations).toHaveLength(1);
+    expect(out.unattributedMentions).toEqual([{ index: 1, raw: "হুইল" }]);
+  });
+
+  it("does not invent an observation to cover a dropped mention", async () => {
+    const merged = structuredClone(GOOD_REPLY) as { observations: unknown[] };
+    merged.observations = [];
+    const out = await assemble(merged);
+    expect(out.observations).toEqual([]);
+    expect(out.unattributedMentions).toHaveLength(2);
+  });
+
+  it("counts a mention as answered only once, however many entries claim it", async () => {
+    const both = structuredClone(GOOD_REPLY) as { observations: Array<Record<string, unknown>> };
+    both.observations[1]!.mentionIndex = "0";
+    const out = await assemble(both);
+    expect(out.unattributedMentions).toEqual([{ index: 1, raw: "হুইল" }]);
   });
 });

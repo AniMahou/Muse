@@ -157,6 +157,9 @@ export function buildContainer(db: Db, overrides: ContainerOverrides = {}): Cont
         assemble: new AssembleStage(llm, {
           temperature: config.llmTemperature,
           maxTokens: config.llmMaxTokens,
+          ...(config.llmReasoningEffort
+            ? { reasoningEffort: config.llmReasoningEffort }
+            : {}),
         }),
         confidence: new ConfidenceStage({
           threshold: config.confidenceThreshold,
