@@ -23,6 +23,16 @@ import type { TranscribeStageInput, TranscribeStageOutput } from "./types";
 export class TranscribeStage {
   readonly name = "01-transcribe";
 
+  /**
+   * Who actually produced the transcript.
+   *
+   * Public so the orchestrator can put it in the cache key. It is not a
+   * detail: a cached transcript is only valid for the provider that made it.
+   */
+  get extractor(): { name: string; model: string } {
+    return { name: this.asr.name, model: this.asr.model };
+  }
+
   constructor(
     private readonly asr: IAsrProvider,
     private readonly catalog?: ICatalogRepo,

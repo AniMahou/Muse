@@ -28,6 +28,9 @@ export function Photo() {
   const [text, setText] = useState<string | null>(null);
   const [count, setCount] = useState(0);
   const [error, setError] = useState<string | null>(null);
+  /** null until a clip has been processed; then whatever actually read it. */
+  const [simulated, setSimulated] = useState<boolean | null>(null);
+  const [extractor, setExtractor] = useState<string | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
   const poll = useRef<number | null>(null);
 
@@ -39,6 +42,8 @@ export function Photo() {
     setError(null);
     setText(null);
     setCount(0);
+    setSimulated(null);
+    setExtractor(null);
 
     try {
       const base64 = await toBase64(blob);
@@ -59,12 +64,15 @@ export function Photo() {
       poll.current = window.setInterval(async () => {
         const clip = await api.get<{
           status: string; transcriptText: string | null; observationCount: number; error: string | null;
+          simulated: boolean; extractor: string | null; extractorModel: string | null;
         }>(`/clips/${res.clipId}`);
 
         if (clip.status === "processed") {
           if (poll.current) clearInterval(poll.current);
           setText(clip.transcriptText);
           setCount(clip.observationCount);
+          setSimulated(clip.simulated);
+          setExtractor(clip.extractorModel ?? clip.extractor);
           setPhase("done");
         } else if (clip.status === "failed") {
           if (poll.current) clearInterval(poll.current);
@@ -93,10 +101,12 @@ export function Photo() {
     <div className="px-5 py-6">
       <div className="flex items-start justify-between gap-3 mb-1">
         <h1 className="font-bn text-xl">নোটের ছবি</h1>
-        <span className="shrink-0 rounded-full border border-uncertain/40 bg-uncertain/10
-                         px-2.5 py-1 text-[10px] font-medium text-uncertain">
-          SIMULATED OCR
-        </span>
+        {simulated !== false && (
+          <span className="shrink-0 rounded-full border border-uncertain/40 bg-uncertain/10
+                           px-2.5 py-1 text-[10px] font-medium text-uncertain">
+            {simulated === null ? "OCR" : "SIMULATED OCR"}
+          </span>
+        )}
       </div>
       <p className="text-sm text-ink-muted bn mb-6">
         হাতে লেখা অর্ডার নোটের ছবি তুলুন
@@ -164,7 +174,9 @@ export function Photo() {
               <div className="glass p-5">
                 <div className="flex items-center justify-between mb-3">
                   <p className="label !mb-0">যা পড়া হয়েছে</p>
-                  <span className="text-[10px] text-uncertain">simulated</span>
+                  <span className="text-[10px] text-uncertain">
+                    {simulated ? "simulated" : (extractor ?? "")}
+                  </span>
                 </div>
                 <p className="font-bn text-lg leading-loose">{text}</p>
               </div>
@@ -175,9 +187,9 @@ export function Photo() {
                   {count}টি তথ্য পাওয়া গেছে — দোকান, পণ্য আর পরিমাণ শনাক্ত করা হয়েছে
                 </p>
                 <p className="mt-3 text-xs text-ink-muted leading-relaxed">
-                  Extraction is simulated. Everything after it — the Bangla
-                  quantity grammar, product matching and confidence scoring — is
-                  the same code that runs on voice.
+                  {simulated
+                    ? "Extraction is simulated. Everything after it — the Bangla quantity grammar, product matching and confidence scoring — is the same code that runs on voice."
+                    : "Read by our own recogniser, trained on Bangla type. Finding the lines in a photograph is not a trained model yet, so expect misreadings — everything after extraction is the same code that runs on voice."}
                 </p>
               </div>
             </>

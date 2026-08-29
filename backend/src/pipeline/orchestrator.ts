@@ -95,12 +95,26 @@ export class PipelineOrchestrator {
         stageName,
         // brands is part of the key: biasing changes the transcript, so a clip
         // cached under one portfolio must not be replayed under another.
+        //
+        // So is the extractor. StageCache's own documentation claims the key
+        // includes the provider and model and warns precisely what happens
+        // otherwise — "switch provider, get a cache hit from the old one, and
+        // score stale results while believing the new provider produced them".
+        // It did not include them. Switching OCR from the mock to the trained
+        // recogniser went on serving mock text for every photo already seen,
+        // and because the clip record takes `simulated` from the CONFIGURED
+        // provider rather than from whatever produced the bytes, those clips
+        // were then filed as not simulated. A demo would have shown invented
+        // Bangla labelled as a real reading.
         {
           hash: audioHash,
           source,
           language: this.opts.language,
           mimeType: input.mimeType,
           brands: this.opts.brands ?? null,
+          extractor: usePhoto
+            ? { name: this.stages.ocr!.name, model: this.stages.ocr!.model }
+            : this.stages.transcribe.extractor,
         },
         () =>
           usePhoto

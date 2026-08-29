@@ -54,6 +54,14 @@ export function ingestRoutes(container: Container, uploads: UploadService): Rout
         observationCount: clip.observationCount,
         transcriptText: clip.transcriptText,
         error: clip.error,
+        // Reported, not assumed. The app used to hard-code a "SIMULATED OCR"
+        // badge, which was honest while the mock was the only implementation
+        // and became a lie the moment the trained recogniser was wired in —
+        // in the direction that matters least, but a UI that states a fact it
+        // does not check will eventually state it wrongly the other way.
+        simulated: clip.pipeline?.simulated ?? false,
+        extractor: clip.pipeline?.extractor ?? null,
+        extractorModel: clip.pipeline?.extractorModel ?? null,
       });
     } catch (err) {
       next(err);
