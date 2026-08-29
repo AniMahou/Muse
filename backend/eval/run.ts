@@ -71,32 +71,84 @@ async function loadLabels(
 }
 
 /**
+ * A self-tuning pace, so the run stops fighting the rate limiter.
+ *
+ * The previous approach sprinted at every clip and leaned on retries. Against a
+ * tokens-per-minute ceiling that is exactly wrong: the burst is throttled, the
+ * retries are spent waiting out a window the run itself keeps refilling, and
+ * clips start failing outright. On the last full attempt 44 of 105 died that
+ * way — and a field accuracy computed from the 61 survivors is not a
+ * measurement, it is a number.
+ *
+ * Rather than model the token budget (which needs per-clip accounting we do not
+ * have), this watches for throttling and slows down until it stops. A 429
+ * widens the gap between clips; a clean stretch narrows it again. It converges
+ * on whatever the account's real limit is without being told, and it costs
+ * nothing when there is no limit being hit.
+ */
+class Pacer {
+  private delayMs = 0;
+  private cleanRuns = 0;
+
+  /** Wait for the current gap before starting a clip. */
+  async wait(): Promise<void> {
+    if (this.delayMs > 0) await sleep(this.delayMs);
+  }
+
+  /** A clip was throttled. Back off hard — the window is already full. */
+  throttled(): void {
+    this.cleanRuns = 0;
+    this.delayMs = Math.min(30_000, this.delayMs === 0 ? 4_000 : Math.round(this.delayMs * 1.6));
+  }
+
+  /**
+   * A clip finished cleanly. Ease off slowly, and only after several in a row —
+   * recovering faster than that just re-enters the throttle and undoes the
+   * pacing we spent clips learning.
+   */
+  ok(): void {
+    if (this.delayMs === 0) return;
+    if (++this.cleanRuns < 4) return;
+    this.cleanRuns = 0;
+    this.delayMs = this.delayMs < 1_000 ? 0 : Math.round(this.delayMs * 0.75);
+  }
+
+  get current(): number {
+    return this.delayMs;
+  }
+}
+
+const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
+
+/**
  * Run one clip, waiting out rate limits rather than recording them as failures.
  *
  * In production BullMQ owns retries; the evaluation has no such layer, so a
- * free-tier tokens-per-minute ceiling turned into "17 of 20 clips FAILED" and
- * a field-accuracy figure computed from whatever survived. That is the worst
- * possible failure mode for a measurement: it still produces a number.
+ * free-tier ceiling turned into most of the set FAILED and an accuracy computed
+ * from whatever survived. That is the worst possible failure mode for a
+ * measurement: it still produces a number.
  *
- * Groq states the wait in its own error ("Please try again in 9.62s"), which
- * is better than any backoff we could guess, so honour it when present. This
- * also paces the whole run automatically — no fixed sleep that would be too
- * slow when the limit is not being hit.
+ * Groq states the wait in its own error ("Please try again in 9.62s"), which is
+ * better than any backoff we could guess, so honour it when present.
  */
-async function withRetry<T>(fn: () => Promise<T>, attempts = 6): Promise<T> {
+async function withRetry<T>(fn: () => Promise<T>, pacer: Pacer, attempts = 10): Promise<T> {
   let lastErr: unknown;
   for (let i = 0; i < attempts; i++) {
     try {
-      return await fn();
+      await pacer.wait();
+      const out = await fn();
+      pacer.ok();
+      return out;
     } catch (err) {
       lastErr = err;
       if (!(err instanceof ProviderError) || !err.retryable) throw err;
+      pacer.throttled();
       const suggested = /try again in ([\d.]+)s/i.exec(err.message);
       const waitMs = suggested
-        ? Math.ceil(Number(suggested[1]) * 1000) + 500
-        : Math.min(30_000, 2_000 * 2 ** i);
-      process.stdout.write(`rate limited, waiting ${(waitMs / 1000).toFixed(1)}s ... `);
-      await new Promise((r) => setTimeout(r, waitMs));
+        ? Math.ceil(Number(suggested[1]) * 1000) + 750
+        : Math.min(45_000, 2_000 * 2 ** i);
+      process.stdout.write(`throttled, waiting ${(waitMs / 1000).toFixed(1)}s ... `);
+      await sleep(waitMs);
     }
   }
   throw lastErr;
@@ -138,6 +190,7 @@ async function main(): Promise<void> {
   const container = buildContainer(db, noCache ? { cacheEnabled: false } : {});
   const orchestrator = container.buildOrchestrator();
 
+  const pacer = new Pacer();
   let tally = emptyTally();
   let werSum = 0;
   let cerSum = 0;
@@ -176,7 +229,7 @@ async function main(): Promise<void> {
         geo: label.geo,
         declaredOutletId: null,
         recordedAt: new Date().toISOString(),
-      }));
+      }), pacer);
 
       const hasReference = label.transcriptBn.trim().length > 0;
       const clipWer = hasReference ? wer(label.transcriptBn, result.transcript.text) : null;
@@ -222,7 +275,8 @@ async function main(): Promise<void> {
 
       console.log(
         `${clipWer === null ? "WER   —  " : `WER ${(clipWer * 100).toFixed(1).padStart(5)}%`}` +
-          `  obs ${result.observations.length}/${label.observations.length}`,
+          `  obs ${result.observations.length}/${label.observations.length}` +
+          (pacer.current > 0 ? `  ${(pacer.current / 1000).toFixed(1)}s pace` : ""),
       );
     } catch (err) {
       failures++;
@@ -298,9 +352,13 @@ async function main(): Promise<void> {
 
   // Regression gate: a drop of more than 2 points in overall field accuracy
   // fails the run, so a prompt change cannot quietly make things worse.
-  // Only compare against a baseline drawn from a comparable set. Twenty clips
-  // against a previous three is not a regression, it is a different question.
-  const comparable = previous !== null && previous.scoredCount >= report.scoredCount * 0.9;
+  // Comparable in BOTH directions. The first version only rejected a baseline
+  // that was too small, so a 61-clip run compared itself against a 105-clip
+  // baseline and printed a confident (+9.7) — two different questions, one
+  // plus sign. A baseline is comparable only when it covers roughly the same
+  // set, whichever way the difference runs.
+  const ratio = previous === null ? 0 : previous.scoredCount / Math.max(1, report.scoredCount);
+  const comparable = previous !== null && ratio >= 0.9 && ratio <= 1.1;
   if (comparable && previous && report.overallFieldAccuracy < previous.overallFieldAccuracy - 0.02) {
     console.error(
       `\n  REGRESSION: field accuracy ${previous.overallFieldAccuracy} -> ${report.overallFieldAccuracy}\n`,

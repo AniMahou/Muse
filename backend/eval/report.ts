@@ -58,6 +58,19 @@ export function renderReport(r: EvalReport, prev: EvalReport | null): string {
     L.push("");
   }
 
+  // A run that lost clips measured a different, smaller set. The snapshot is
+  // already withheld in that case, but the report is still read by a human —
+  // and a headline figure computed from two thirds of the set looks exactly
+  // like one computed from all of it.
+  if (r.failures > 0) {
+    const share = ((r.failures / Math.max(1, r.clipCount)) * 100).toFixed(0);
+    L.push(`> **Incomplete run — ${r.failures} of ${r.clipCount} clips failed (${share}%).**`);
+    L.push("> Every figure below describes only the clips that survived, which is a");
+    L.push("> different set from the one you meant to measure. Not saved as a baseline.");
+    L.push("> Re-run before quoting anything here.");
+    L.push("");
+  }
+
   L.push("## The headline");
   L.push("");
   L.push("| | |");
