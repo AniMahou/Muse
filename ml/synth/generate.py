@@ -24,6 +24,7 @@ import numpy as np
 from .augment import degrade
 from .corpus import Catalog, corpus
 from .fonts import discover
+from ocr.charset import normalise
 from .shape import render
 
 TARGET_H = 32
@@ -106,7 +107,13 @@ def main() -> None:
             name = f"{i:07d}.png"
             cv2.imwrite(str(out / "images" / name), img)
             fh.write(f"{name}\t{text}\n")
-            charset.update(text)
+            # NORMALISED, like the training loader does. Counting raw code
+            # points here recorded a bare U+09BC NUKTA as a class and never ড় or
+            # য়, so this file described an alphabet no model was ever trained on.
+            # Anything loading it for inference would map ids to the wrong
+            # characters from the divergence point on and emit confident
+            # nonsense. The authoritative charset ships beside the weights.
+            charset.update(normalise(text))
             written += 1
             if written % 2000 == 0:
                 print(f"  {written}/{len(lines)}")
@@ -120,6 +127,7 @@ def main() -> None:
     )
     print(f"\n  {written} samples -> {out}")
     print(f"  {len(charset)} distinct characters, {len(faces)} fonts")
+    print("  NOTE: checkpoints/charset.json is the one that binds — load that for inference.")
 
 
 if __name__ == "__main__":

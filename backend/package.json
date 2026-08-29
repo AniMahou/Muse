@@ -26,6 +26,8 @@
     "mic": "tsx scripts/mic.ts",
     "collect": "tsx scripts/collect.ts",
     "clips": "tsx scripts/clips-audit.ts",
+    "photos": "tsx scripts/photos-collect.ts",
+    "photos:label": "tsx scripts/photos-label.ts",
     "labels:build": "tsx scripts/labels-build.ts",
     "split": "tsx scripts/split.ts",
     "labels:scaffold": "tsx scripts/labels-build.ts --scaffold",

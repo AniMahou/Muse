@@ -11,6 +11,12 @@ backend/traces/
 backend/.cache/
 backend/datasets/clips/*
 !backend/datasets/clips/.gitkeep
+
+# Photographs, their line crops, and the labels typed against them. Same rule
+# as audio: raw capture does not belong in a repository, and the labels are
+# only meaningful beside the images they describe.
+backend/datasets/photos/*
+!backend/datasets/photos/.gitkeep
 backend/eval/report/*
 !backend/eval/report/.gitkeep
 
